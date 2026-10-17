@@ -2,6 +2,7 @@ package com.lucasamaral.pokedex.web.catalog;
 
 import com.lucasamaral.pokedex.application.catalog.BrowseCatalogUseCase;
 import com.lucasamaral.pokedex.application.catalog.CatalogUnavailableException;
+import com.lucasamaral.pokedex.application.catalog.GetPokemonDetailsUseCase;
 import com.lucasamaral.pokedex.application.pagination.Page;
 import com.lucasamaral.pokedex.application.pagination.PageQuery;
 import com.lucasamaral.pokedex.domain.pokemon.Ability;
@@ -36,6 +37,9 @@ class CatalogControllerTest {
 
     @MockitoBean
     private BrowseCatalogUseCase browseCatalog;
+
+    @MockitoBean
+    private GetPokemonDetailsUseCase getPokemonDetails;
 
     @Test
     void returnsOnePageOfSummaries() {

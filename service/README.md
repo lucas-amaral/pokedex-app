@@ -49,6 +49,7 @@ All endpoints are under `/api/v1`. Pages are zero-based.
 | Method | Path | Description | Responses |
 | --- | --- | --- | --- |
 | GET | `/catalog/pokemon?page=0&size=20` | One page of the PokeAPI catalog (US01). `size` is 1 to 50 | 200, 400, 503 |
+| GET | `/catalog/pokemon/{idOrName}` | One Pokémon by Pokédex number (`25`) or name (`pikachu`, case-insensitive): artwork, base stats, description, evolution chain (US02) | 200, 400, 404, 503 |
 
 Example:
 
@@ -79,6 +80,98 @@ curl 'http://localhost:8080/api/v1/catalog/pokemon?page=0&size=2'
 }
 ```
 
+The detail view returns the evolution chain as a tree: each stage lists the species it can evolve into and the
+condition (`trigger`, `minLevel`, `item`) to get there. Eevee is shown with 2 of its 8 branches.
+
+```bash
+curl 'http://localhost:8080/api/v1/catalog/pokemon/eevee'
+```
+
+```json
+{
+  "id": 133,
+  "name": "eevee",
+  "artworkUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/133.png",
+  "category": "Evolution Pokémon",
+  "description": "Harbors the potential to evolve into manifold forms. Within Eevee lies the key to the mysteries of Pokémon evolution—I'm certain of it.",
+  "heightM": 0.3,
+  "weightKg": 6.5,
+  "types": [
+    "normal"
+  ],
+  "abilities": [
+    {
+      "name": "run-away",
+      "hidden": false
+    },
+    {
+      "name": "adaptability",
+      "hidden": false
+    },
+    {
+      "name": "anticipation",
+      "hidden": true
+    }
+  ],
+  "stats": [
+    {
+      "name": "hp",
+      "value": 55
+    },
+    {
+      "name": "attack",
+      "value": 55
+    },
+    {
+      "name": "defense",
+      "value": 50
+    },
+    {
+      "name": "special-attack",
+      "value": 45
+    },
+    {
+      "name": "special-defense",
+      "value": 65
+    },
+    {
+      "name": "speed",
+      "value": 55
+    }
+  ],
+  "evolutionChain": {
+    "speciesId": 133,
+    "name": "eevee",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png",
+    "condition": null,
+    "evolvesTo": [
+      {
+        "speciesId": 134,
+        "name": "vaporeon",
+        "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/134.png",
+        "condition": {
+          "trigger": "use-item",
+          "minLevel": null,
+          "item": "water-stone"
+        },
+        "evolvesTo": []
+      },
+      {
+        "speciesId": 135,
+        "name": "jolteon",
+        "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/135.png",
+        "condition": {
+          "trigger": "use-item",
+          "minLevel": null,
+          "item": "thunder-stone"
+        },
+        "evolvesTo": []
+      }
+    ]
+  }
+}
+```
+
 ### Errors
 
 Every error is an [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) problem detail with content type
@@ -97,7 +190,7 @@ Every error is an [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) problem det
 | Status | When |
 | --- | --- |
 | 400 | Invalid parameters (`errors` lists each one) or wrong types |
-| 404 | Unknown route |
+| 404 | No Pokémon with that number or name, or unknown route |
 | 503 | PokeAPI is down, too slow or returned an error |
 | 500 | Unexpected error; details are logged, never returned |
 

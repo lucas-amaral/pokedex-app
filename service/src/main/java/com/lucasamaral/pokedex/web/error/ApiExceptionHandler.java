@@ -1,6 +1,7 @@
 package com.lucasamaral.pokedex.web.error;
 
 import com.lucasamaral.pokedex.application.catalog.CatalogUnavailableException;
+import com.lucasamaral.pokedex.application.catalog.PokemonNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -32,6 +33,13 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE,
                 "The Pokémon catalog is not responding. Try again in a moment.");
         problem.setTitle("Catalog unavailable");
+        return problem;
+    }
+
+    @ExceptionHandler(PokemonNotFoundException.class)
+    ProblemDetail handlePokemonNotFound(PokemonNotFoundException exception) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+        problem.setTitle("Pokémon not found");
         return problem;
     }
 
