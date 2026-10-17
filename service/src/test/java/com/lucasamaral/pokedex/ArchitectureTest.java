@@ -22,7 +22,6 @@ class ArchitectureTest {
     @ArchTest
     static final ArchRule layersDependOnlyInward = layeredArchitecture()
             .consideringOnlyDependenciesInLayers()
-            .withOptionalLayers(true)
             .layer("Domain").definedBy(DOMAIN)
             .layer("Application").definedBy(APPLICATION)
             .layer("Infrastructure").definedBy(INFRASTRUCTURE)
@@ -41,6 +40,5 @@ class ArchitectureTest {
                     "jakarta.servlet..",
                     "tools.jackson..",
                     "com.fasterxml.jackson..")
-            .allowEmptyShould(true)
             .because("domain and use cases must not know about frameworks, HTTP or persistence");
 }
