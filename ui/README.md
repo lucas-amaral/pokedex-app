@@ -28,7 +28,9 @@ API_PROXY_TARGET=http://localhost:8081 npm run dev
 | Address | Page |
 | --- | --- |
 | `/` and `/?page=N` | Catalog, page N (counted from 1, so the address can be shared or bookmarked) |
-| `/pokemon/:idOrName` | One Pokémon: artwork, types, height, weight, abilities, base stats, description, evolution chain. A malformed address shows "Pokémon not found" without calling the service |
+| `/pokemon/:idOrName` | One Pokémon: artwork, types, height, weight, abilities, base stats, description, evolution chain, and "Add to collection". A malformed address shows "Pokémon not found" without calling the service |
+| `/collection?name=&tag=&page=N` | Your collection: filter by name or nickname and by tag (click a tag on a row); filters and page live in the address |
+| `/collection/:id` | One collected Pokémon: PokeAPI data, your fields (nickname, notes, region, localized names, tags), and a "Refresh from PokeAPI" button |
 | anything else | Page not found |
 
 Routing uses React Router. In production the web server must answer every unknown path with `index.html` so these
@@ -53,10 +55,11 @@ src/
 ├── main.tsx            Entry point: router and query client providers
 ├── app/                Layout (header, navigation), route table, not-found page, query client defaults
 ├── api/                HTTP helper, shared API types, ApiError
-├── components/         Reusable UI pieces (Pagination, ErrorState, TypeBadges)
+├── components/         Reusable UI pieces (Pagination, ErrorState, TypeBadges, StatBars)
 ├── features/
 │   ├── catalog/        Catalog screen: API call, useCatalogPage hook, PokemonCard, CatalogPage
-│   └── pokemon-details/ Detail screen: API call, usePokemonDetails hook, StatBars, EvolutionChain
+│   ├── pokemon-details/ Detail screen: API call, usePokemonDetails hook, EvolutionChain
+│   └── collection/     Collection: API calls, query keys and hooks, AddToCollectionButton, list and detail pages
 ├── lib/                Formatting helpers and useDocumentTitle (names the browser tab after the page)
 └── test/               Test setup: MSW server, query client wrapper
 ```
@@ -68,7 +71,9 @@ Shared pieces move to `components/`, `api/` or `lib/` only when a second feature
 
 | Kind of state | Where it lives | Why |
 | --- | --- | --- |
-| Data from the API | TanStack Query | Caching per query, loading and error states, retries, previous page kept while the next one loads |
+| Data from the API | TanStack Query queries | Caching per query, loading and error states, retries, previous page kept while the next one loads |
+| Changes sent to the API (sync) | TanStack Query mutations | After a sync the stored Pokémon goes straight into the cache and every collection list refetches, using shared query keys |
+| Collection filters and page | The address (`?name=&tag=&page=`) | Same reasons as the catalog page |
 | Current catalog page | The address (`?page=N`) | Survives reloads, can be shared, works with the browser's back button |
 | Where "Back to catalog" returns | React Router navigation state | Opening a Pokémon from page 7 and going back lands on page 7 again |
 
