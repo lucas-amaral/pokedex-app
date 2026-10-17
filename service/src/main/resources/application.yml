@@ -1,6 +1,10 @@
 spring:
   application:
     name: pokedex-service
+  cache:
+    cache-names: pokeapi-pokemon-list,pokeapi-pokemon,pokeapi-species
+    caffeine:
+      spec: maximumSize=2000,expireAfterWrite=24h,recordStats
   web:
     locale: en
     locale-resolver: fixed

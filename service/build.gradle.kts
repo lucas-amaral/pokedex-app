@@ -24,10 +24,12 @@ val mockitoAgent = configurations.create("mockitoAgent")
 
 dependencies {
     implementation(libs.spring.boot.starter.actuator)
+    implementation(libs.spring.boot.starter.cache)
     implementation(libs.spring.boot.starter.restclient)
     implementation(libs.spring.boot.starter.validation)
     implementation(libs.spring.boot.starter.webmvc)
     implementation(libs.springdoc.openapi.webmvc.ui)
+    implementation(libs.caffeine)
 
     testImplementation(libs.spring.boot.starter.actuator.test)
     testImplementation(libs.spring.boot.starter.validation.test)
