@@ -13,15 +13,19 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.serviceUnavailable;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.lucasamaral.pokedex.support.Fixtures.read;
 
 /**
- * US01 through the whole stack: real HTTP server, controller, use case, PokeAPI adapter and cache.
+ * US01 and US02 through the whole stack: real HTTP server, controller, use case, PokeAPI adapter and cache.
  * Only PokeAPI itself is replaced, by WireMock.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -90,6 +94,50 @@ class CatalogApiEndToEndTest {
                 .expectStatus().isBadRequest()
                 .expectHeader().contentType(MediaType.APPLICATION_PROBLEM_JSON)
                 .expectBody().jsonPath("$.errors[0].parameter").isEqualTo("size");
+    }
+
+    @Test
+    void showsTheDetailsOfOnePokemonWhateverTheCaseOfItsName() {
+        stubFirstTwoPokemon();
+        pokeApi.stubFor(get("/evolution-chain/1").willReturn(okJson(read("pokeapi/evolution-chain-1.json"))));
+
+        client.get().uri(CATALOG + "/Bulbasaur")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody().json("""
+                        {
+                          "id": 1, "name": "bulbasaur", "category": "Seed Pokémon", "heightM": 0.7, "weightKg": 6.9,
+                          "types": ["grass", "poison"],
+                          "description": "While it is young, it uses the nutrients that are stored in the seed on its back in order to grow.",
+                          "evolutionChain": {
+                            "name": "bulbasaur", "condition": null,
+                            "evolvesTo": [{"name": "ivysaur", "condition": {"trigger": "level-up", "minLevel": 16},
+                                           "evolvesTo": [{"name": "venusaur", "condition": {"minLevel": 32}, "evolvesTo": []}]}]
+                          }
+                        }
+                        """);
+        pokeApi.verify(exactly(1), getRequestedFor(urlEqualTo("/pokemon/bulbasaur")));
+    }
+
+    @Test
+    void answersNotFoundForAPokemonPokeApiDoesNotKnow() {
+        pokeApi.stubFor(get("/pokemon/missingno").willReturn(notFound()));
+
+        client.get().uri(CATALOG + "/missingno")
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectHeader().contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody().jsonPath("$.title").isEqualTo("Pokémon not found");
+    }
+
+    @Test
+    void rejectsAMalformedNameWithoutCallingPokeApi() {
+        client.get().uri(CATALOG + "/mew!")
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody().jsonPath("$.errors[0].parameter").isEqualTo("idOrName");
+
+        pokeApi.verify(exactly(0), getRequestedFor(urlEqualTo("/pokemon/mew!")));
     }
 
     private static void stubFirstTwoPokemon() {

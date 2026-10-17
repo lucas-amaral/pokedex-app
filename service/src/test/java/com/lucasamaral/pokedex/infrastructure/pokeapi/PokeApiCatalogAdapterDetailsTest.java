@@ -117,6 +117,14 @@ class PokeApiCatalogAdapterDetailsTest {
     }
 
     @Test
+    void reportsCatalogUnavailableWhenThePokemonCallFails() {
+        stubFor(get("/pokemon/bulbasaur").willReturn(serverError()));
+
+        assertThatExceptionOfType(CatalogUnavailableException.class)
+                .isThrownBy(() -> adapter.findDetails("bulbasaur"));
+    }
+
+    @Test
     void reportsCatalogUnavailableWhenTheEvolutionChainFails() {
         stubPokemon("bulbasaur", "bulbasaur", 1);
         stubFor(get("/evolution-chain/1").willReturn(serverError()));
