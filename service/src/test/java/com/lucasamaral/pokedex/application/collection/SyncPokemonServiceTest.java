@@ -98,6 +98,58 @@ class SyncPokemonServiceTest {
         assertThat(repository.all()).isEmpty();
     }
 
+    @Test
+    void refreshesWhenAnotherRequestAddedTheSamePokemonFirst() {
+        catalog.add(aPokemonDetails().build());
+        var racing = new RacingRepository(repository);
+        var racingSync = new SyncPokemonService(catalog, racing, Clock.fixed(NOW, ZoneOffset.UTC));
+
+        var result = racingSync.sync("bulbasaur");
+
+        assertThat(result.created()).isFalse();
+        assertThat(result.pokemon().id()).isEqualTo(racing.winner.id());
+        assertThat(repository.all()).hasSize(1);
+    }
+
+    /**
+     * Simulates a concurrent request: the first lookup finds nothing, but by the time this request saves,
+     * another one has already stored the same Pokémon, so the insert is refused as a duplicate.
+     */
+    private static final class RacingRepository implements com.lucasamaral.pokedex.application.collection.CollectionRepository {
+
+        private final InMemoryCollectionRepository delegate;
+        private CollectedPokemon winner;
+
+        private RacingRepository(InMemoryCollectionRepository delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public Optional<CollectedPokemon> findById(java.util.UUID id) {
+            return delegate.findById(id);
+        }
+
+        @Override
+        public Optional<CollectedPokemon> findByPokeapiId(int pokeapiId) {
+            return winner == null ? Optional.empty() : delegate.findByPokeapiId(pokeapiId);
+        }
+
+        @Override
+        public CollectedPokemon save(CollectedPokemon pokemon) {
+            if (winner == null) {
+                winner = delegate.save(CollectedPokemon.collect(aPokemonDetails().build(), NOW.minusSeconds(1)));
+                throw new DuplicateCollectedPokemonException(pokemon.pokeapiId(), new IllegalStateException("unique key"));
+            }
+            return delegate.save(pokemon);
+        }
+
+        @Override
+        public com.lucasamaral.pokedex.application.pagination.Page<CollectedPokemon> findPage(
+                CollectionFilter filter, com.lucasamaral.pokedex.application.pagination.PageQuery query) {
+            return delegate.findPage(filter, query);
+        }
+    }
+
     /**
      * Fake detail catalog answering by name or Pokédex number, and recording the keys it was asked for.
      */

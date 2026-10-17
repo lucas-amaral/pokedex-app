@@ -12,15 +12,22 @@ The project is built story by story, test-first, on a Clean Architecture backend
 | --- | --- | --- |
 | US01 Browse | Page through Pokémon with sprite, category, weight and abilities | Done (API and UI) |
 | US02 Details | See one Pokémon's artwork, base stats, description and evolution chain | Done (API and UI) |
-| US03 Sync | Copy a Pokémon into the local database to add proprietary fields | Planned |
+| US03 Sync | Copy a Pokémon into the local database to add proprietary fields | In progress (domain, use cases, database done) |
 | US04 Edit | Update the proprietary fields of a stored Pokémon, with validation | Planned |
 | Users | Register, log in, public versus protected routes | Planned |
 
 ## Quick start
 
-Requirements: **JDK 25** and **Node.js 22.12+**. Gradle and its Java toolchain are handled by the Gradle wrapper.
+Requirements: **JDK 25**, **Node.js 22.12+** and a **Docker** runtime (Docker Desktop or Rancher Desktop with the
+dockerd engine). Gradle and its Java toolchain are handled by the Gradle wrapper.
 
-Start the API (port 8080):
+Start PostgreSQL (port 5432):
+
+```bash
+docker compose up -d db
+```
+
+Start the API (port 8080). Flyway creates the schema on first start:
 
 ```bash
 ./service/gradlew -p service bootRun
@@ -46,8 +53,9 @@ Open the URL Vite prints (http://localhost:5173 by default). The dev server forw
 
 ```
 pokedex-app/
-├── service/   Spring Boot API (Java 25, Gradle)   → see service/README.md
-└── ui/        React front-end (TypeScript, Vite)  → see ui/README.md
+├── docker-compose.yml   PostgreSQL for local development
+├── service/             Spring Boot API (Java 25, Gradle)   → see service/README.md
+└── ui/                  React front-end (TypeScript, Vite)  → see ui/README.md
 ```
 
 ## Architecture
@@ -57,10 +65,11 @@ flowchart LR
     UI["ui (React)"] -- "HTTP /api" --> WEB
     subgraph service
         WEB["web<br/>controllers, DTOs, errors"] --> APP["application<br/>use cases, ports"]
-        INFRA["infrastructure<br/>PokeAPI adapter, cache, wiring"] --> APP
+        INFRA["infrastructure<br/>PokeAPI and JPA adapters, cache, wiring"] --> APP
         APP --> DOMAIN["domain<br/>entities, value objects"]
     end
     INFRA -- "HTTP, cached" --> POKEAPI[(PokeAPI)]
+    INFRA -- "JPA" --> DB[(PostgreSQL)]
 ```
 
 - Every dependency points inward. The domain and the use cases are plain Java with no Spring, HTTP or persistence
@@ -79,9 +88,10 @@ flowchart LR
 | PokeAPI client | `@HttpExchange` interface on `RestClient` | Declarative, synchronous, no reactive stack needed |
 | Concurrency | Virtual threads | Parallel PokeAPI calls per page; Tomcat also serves requests on virtual threads |
 | Cache | Caffeine via Spring Cache | Near-static data, single instance, no extra infrastructure |
+| Database | PostgreSQL 17, Flyway, Spring Data JPA | Relational store for the collection; versioned schema migrations |
 | Errors | RFC 9457 `ProblemDetail` | One standard error shape for every endpoint |
 | API docs | springdoc-openapi | Swagger UI for every endpoint |
-| Back-end tests | JUnit 5, AssertJ, Mockito, WireMock, ArchUnit, JaCoCo | Unit, HTTP-contract, architecture and coverage |
+| Back-end tests | JUnit 5, AssertJ, Mockito, WireMock, Testcontainers, ArchUnit, JaCoCo | Unit, HTTP-contract, real-database, architecture and coverage |
 | Front-end | React 19, TypeScript, Vite 8, Tailwind 4 | Typed components, fast dev server, responsive utility CSS |
 | Server state | TanStack Query | Caching, loading and error states, pagination |
 | Routing | React Router | One address per page; the catalog page lives in the address |
@@ -94,7 +104,8 @@ flowchart LR
 npm --prefix ui test
 ```
 
-The back-end build runs all tests and writes a JaCoCo coverage report to
+The back-end tests start a throwaway PostgreSQL container with Testcontainers, so Docker must be running. The build
+runs all tests and writes a JaCoCo coverage report to
 `service/build/reports/jacoco/test/html/index.html`.
 
 ## How this project is built
@@ -106,7 +117,8 @@ before submission.
 
 ## Roadmap
 
-- US03 and US04: PostgreSQL with Flyway, local collection with proprietary fields
+- US03: sync and collection endpoints, collection screens
+- US04: edit proprietary fields with validation
 - User registration, login and protected routes (JWT)
 - Seed data (Generations 1 and 2) and demo credentials
 - Dockerfiles and Docker Compose

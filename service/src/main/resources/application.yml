@@ -1,6 +1,14 @@
 spring:
   application:
     name: pokedex-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/pokedex
+    username: pokedex
+    password: pokedex
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
   cache:
     cache-names: pokeapi-pokemon-list,pokeapi-pokemon,pokeapi-species,pokeapi-evolution-chain
     caffeine:

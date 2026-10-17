@@ -12,6 +12,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.client.RestTestClient;
+import org.springframework.context.annotation.Import;
+import com.lucasamaral.pokedex.support.PostgresTestConfiguration;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -29,6 +31,7 @@ import static com.lucasamaral.pokedex.support.Fixtures.read;
  * Only PokeAPI itself is replaced, by WireMock.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Import(PostgresTestConfiguration.class)
 @AutoConfigureRestTestClient
 class CatalogApiEndToEndTest {
 

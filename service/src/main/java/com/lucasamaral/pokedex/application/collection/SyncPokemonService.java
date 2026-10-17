@@ -4,8 +4,10 @@ import com.lucasamaral.pokedex.application.catalog.PokemonDetailsCatalog;
 import com.lucasamaral.pokedex.application.catalog.PokemonKey;
 import com.lucasamaral.pokedex.application.catalog.PokemonNotFoundException;
 import com.lucasamaral.pokedex.domain.collection.CollectedPokemon;
+import com.lucasamaral.pokedex.domain.pokemon.PokemonDetails;
 
 import java.time.Clock;
+import java.time.Instant;
 import java.util.Objects;
 
 public class SyncPokemonService implements SyncPokemonUseCase {
@@ -26,8 +28,20 @@ public class SyncPokemonService implements SyncPokemonUseCase {
         var details = catalog.findDetails(key).orElseThrow(() -> new PokemonNotFoundException(key));
         var now = clock.instant();
 
-        return repository.findByPokeapiId(details.id())
-                .map(existing -> new SyncResult(repository.save(existing.refreshFrom(details, now)), false))
-                .orElseGet(() -> new SyncResult(repository.save(CollectedPokemon.collect(details, now)), true));
+        var existing = repository.findByPokeapiId(details.id());
+        if (existing.isPresent()) {
+            return refresh(existing.get(), details, now);
+        }
+        try {
+            return new SyncResult(repository.save(CollectedPokemon.collect(details, now)), true);
+        } catch (DuplicateCollectedPokemonException raceLost) {
+            // A concurrent request stored this Pokémon between our lookup and our insert: refresh its copy instead.
+            var stored = repository.findByPokeapiId(details.id()).orElseThrow(() -> raceLost);
+            return refresh(stored, details, now);
+        }
+    }
+
+    private SyncResult refresh(CollectedPokemon stored, PokemonDetails details, Instant now) {
+        return new SyncResult(repository.save(stored.refreshFrom(details, now)), false);
     }
 }

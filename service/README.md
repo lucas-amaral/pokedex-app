@@ -6,6 +6,8 @@ and user management.
 ## Requirements
 
 - JDK 25. If it is missing, the Gradle toolchain resolver downloads one.
+- PostgreSQL 17. From the repository root, `docker compose up -d db` starts one with the default credentials.
+- A Docker runtime for the tests: Testcontainers starts its own PostgreSQL.
 - Network access to `https://pokeapi.co` at runtime. Tests do not need it: PokeAPI is replaced by WireMock.
 
 ## Run
@@ -39,6 +41,7 @@ To run tests only: `./gradlew test`.
 | PokeAPI adapter tests | WireMock serving trimmed real PokeAPI responses (`src/test/resources/pokeapi`) | `PokeApiCatalogAdapterTest` |
 | Web layer tests | `@WebMvcTest`, MockMvc, Mockito | `CatalogControllerTest` |
 | Cache tests | Spring Boot test + WireMock request counts | `PokeApiCachingTest` |
+| Repository tests | `@DataJpaTest` on a real PostgreSQL started by Testcontainers, schema from Flyway | `JpaCollectionRepositoryTest` |
 | End-to-end tests | Real HTTP port, only PokeAPI faked | `CatalogApiEndToEndTest` |
 | Architecture rules | ArchUnit | `ArchitectureTest` |
 
@@ -204,6 +207,8 @@ Settings live in `src/main/resources/application.yml` and can be overridden with
 
 | Property | Default | Meaning |
 | --- | --- | --- |
+| `spring.datasource.url` | `jdbc:postgresql://localhost:5432/pokedex` | Database (also `SPRING_DATASOURCE_URL`) |
+| `spring.datasource.username` / `password` | `pokedex` / `pokedex` | Database credentials |
 | `pokedex.pokeapi.base-url` | `https://pokeapi.co/api/v2` | PokeAPI root |
 | `pokedex.pokeapi.connect-timeout` | `2s` | Connection timeout per call |
 | `pokedex.pokeapi.read-timeout` | `5s` | Response timeout per call |
@@ -215,12 +220,15 @@ Settings live in `src/main/resources/application.yml` and can be overridden with
 ```
 com.lucasamaral.pokedex
 ├── domain          Entities and value objects with their invariants (plain Java)
-│   └── pokemon       PokemonSummary, PokemonDetails, Weight, Height, BaseStat, EvolutionNode, ...
+│   ├── pokemon       PokemonSummary, PokemonDetails, Weight, Height, BaseStat, EvolutionNode, ...
+│   └── collection    CollectedPokemon (aggregate), SourceData, CustomFields
 ├── application     Use cases and ports (plain Java)
 │   ├── catalog       BrowseCatalog, GetPokemonDetails, PokemonCatalog and PokemonDetailsCatalog ports
+│   ├── collection    SyncPokemon, BrowseCollection, CollectionRepository port, CollectionFilter
 │   └── pagination    Page, PageQuery
 ├── infrastructure  Adapters and Spring wiring
 │   ├── pokeapi       Declarative client, JSON records, mapper, adapter
+│   ├── persistence   JPA entity, mapper, specifications, collection repository adapter
 │   └── config        Use case beans, cache, OpenAPI
 └── web             HTTP delivery
     ├── catalog       Controller and response DTOs
@@ -233,6 +241,21 @@ Rules enforced by `ArchitectureTest`:
 - `web` and `infrastructure` are not used by any other layer.
 - `application` is used only by `infrastructure` and `web`; `domain` only by the layers above it.
 - `domain` and `application` do not import Spring, Jakarta Persistence, Servlet or Jackson.
+
+## Database
+
+PostgreSQL, with the schema owned by Flyway (`src/main/resources/db/migration`); Hibernate only validates it.
+
+| Table | Holds |
+| --- | --- |
+| `pokemon` | One collected Pokémon: UUID key, unique `pokeapi_id`, source data, proprietary text fields, timestamps, version |
+| `pokemon_type`, `pokemon_ability`, `pokemon_stat` | Source data lists, in PokeAPI order |
+| `pokemon_localized_name` | Proprietary names by language tag |
+| `pokemon_tag` | Proprietary tags (indexed for filtering) |
+
+A collected Pokémon has two owners. A sync refreshes the source data and never touches the proprietary fields
+(nickname, notes, region, localized names, tags). The unique `pokeapi_id` stops two concurrent syncs from storing the
+same Pokémon twice; the losing request refreshes the stored copy instead.
 
 ## PokeAPI integration
 

@@ -9,10 +9,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
 import java.util.concurrent.ExecutionException;
+import org.springframework.context.annotation.Import;
+import com.lucasamaral.pokedex.support.PostgresTestConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
+@Import(PostgresTestConfiguration.class)
 @AutoConfigureMockMvc
 class PokedexServiceApplicationTests {
 
