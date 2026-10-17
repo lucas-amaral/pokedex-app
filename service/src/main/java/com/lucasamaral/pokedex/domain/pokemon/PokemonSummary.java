@@ -3,6 +3,9 @@ package com.lucasamaral.pokedex.domain.pokemon;
 import java.util.List;
 import java.util.Objects;
 
+import static com.lucasamaral.pokedex.domain.pokemon.Preconditions.requireNonBlank;
+import static com.lucasamaral.pokedex.domain.pokemon.Preconditions.requirePositive;
+
 /**
  * The slice of a Pokémon shown in the catalog list (US01).
  *
@@ -19,12 +22,8 @@ public record PokemonSummary(
         List<Ability> abilities) {
 
     public PokemonSummary {
-        if (id <= 0) {
-            throw new IllegalArgumentException("Pokémon id must be positive: " + id);
-        }
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Pokémon name must not be blank");
-        }
+        requirePositive(id, "Pokémon id must be positive");
+        requireNonBlank(name, "Pokémon name must not be blank");
         Objects.requireNonNull(weight, "Pokémon weight is required");
         abilities = List.copyOf(Objects.requireNonNull(abilities, "Pokémon abilities are required"));
     }
