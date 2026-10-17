@@ -8,6 +8,7 @@ import com.lucasamaral.pokedex.domain.pokemon.PokemonDetails;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
 public class SyncPokemonService implements SyncPokemonUseCase {
@@ -26,7 +27,8 @@ public class SyncPokemonService implements SyncPokemonUseCase {
     public SyncResult sync(String idOrName) {
         var key = PokemonKey.normalize(idOrName);
         var details = catalog.findDetails(key).orElseThrow(() -> new PokemonNotFoundException(key));
-        var now = clock.instant();
+        // PostgreSQL keeps microseconds; truncating here makes the response match what a later read returns.
+        var now = clock.instant().truncatedTo(ChronoUnit.MICROS);
 
         var existing = repository.findByPokeapiId(details.id());
         if (existing.isPresent()) {

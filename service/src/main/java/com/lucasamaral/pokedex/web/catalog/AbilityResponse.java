@@ -4,7 +4,7 @@ import com.lucasamaral.pokedex.domain.pokemon.Ability;
 
 public record AbilityResponse(String name, boolean hidden) {
 
-    static AbilityResponse from(Ability ability) {
+    public static AbilityResponse from(Ability ability) {
         return new AbilityResponse(ability.name(), ability.hidden());
     }
 }

@@ -2,6 +2,7 @@ package com.lucasamaral.pokedex.web.error;
 
 import com.lucasamaral.pokedex.application.catalog.CatalogUnavailableException;
 import com.lucasamaral.pokedex.application.catalog.PokemonNotFoundException;
+import com.lucasamaral.pokedex.application.collection.CollectedPokemonNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -9,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -43,6 +45,13 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(CollectedPokemonNotFoundException.class)
+    ProblemDetail handleCollectedPokemonNotFound(CollectedPokemonNotFoundException exception) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+        problem.setTitle("Pokémon not in the collection");
+        return problem;
+    }
+
     @ExceptionHandler(Exception.class)
     ProblemDetail handleUnexpected(Exception exception) {
         log.error("Unexpected error", exception);
@@ -62,6 +71,20 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
                                 "message", String.valueOf(error.getDefaultMessage()))))
                 .toList();
         var problem = ProblemDetail.forStatusAndDetail(status, "One or more request parameters are invalid.");
+        problem.setTitle("Invalid request");
+        problem.setProperty("errors", List.copyOf(errors));
+        return handleExceptionInternal(exception, problem, headers, status, request);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException exception, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        var errors = exception.getBindingResult().getFieldErrors().stream()
+                .map(error -> Map.of(
+                        "field", error.getField(),
+                        "message", String.valueOf(error.getDefaultMessage())))
+                .toList();
+        var problem = ProblemDetail.forStatusAndDetail(status, "One or more fields are invalid.");
         problem.setTitle("Invalid request");
         problem.setProperty("errors", List.copyOf(errors));
         return handleExceptionInternal(exception, problem, headers, status, request);

@@ -52,6 +52,9 @@ All endpoints are under `/api/v1`. Pages are zero-based.
 | Method | Path | Description | Responses |
 | --- | --- | --- | --- |
 | GET | `/catalog/pokemon?page=0&size=20` | One page of the PokeAPI catalog (US01). `size` is 1 to 50 | 200, 400, 503 |
+| POST | `/pokemon/sync` with `{"idOrName": "pikachu"}` | Copy a Pokémon from PokeAPI into the collection (US03): 201 with `Location` when added, 200 when it was already there (source data refreshed, proprietary fields kept) | 201, 200, 400, 404, 503 |
+| GET | `/pokemon?page=0&size=20&name=pika&tag=starter` | The collection in Pokédex order; `name` matches part of the name or nickname, `tag` an exact tag | 200, 400 |
+| GET | `/pokemon/{id}` | One collected Pokémon by its UUID: source data plus nickname, notes, region, localized names and tags | 200, 400, 404 |
 | GET | `/catalog/pokemon/{idOrName}` | One Pokémon by Pokédex number (`25`) or name (`pikachu`, case-insensitive): artwork, base stats, description, evolution chain (US02) | 200, 400, 404, 503 |
 
 Example:
@@ -195,8 +198,8 @@ Every error is an [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) problem det
 
 | Status | When |
 | --- | --- |
-| 400 | Invalid parameters (`errors` lists each one) or wrong types |
-| 404 | No Pokémon with that number or name, or unknown route |
+| 400 | Invalid parameters or body fields (`errors` lists each one, by `parameter` or `field`), wrong types, or a body that is not JSON |
+| 404 | No Pokémon with that number or name ("Pokémon not found"), no such id in the collection ("Pokémon not in the collection"), or unknown route |
 | 503 | PokeAPI is down, too slow or returned an error |
 | 500 | Unexpected error; details are logged, never returned |
 

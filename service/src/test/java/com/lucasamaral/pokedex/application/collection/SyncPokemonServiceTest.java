@@ -63,6 +63,16 @@ class SyncPokemonServiceTest {
     }
 
     @Test
+    void recordsTheSyncTimeAtTheDatabasePrecision() {
+        catalog.add(aPokemonDetails().build());
+        var nanosClock = Clock.fixed(Instant.parse("2026-10-18T10:00:00.123456789Z"), ZoneOffset.UTC);
+
+        var result = new SyncPokemonService(catalog, repository, nanosClock).sync("bulbasaur");
+
+        assertThat(result.pokemon().syncedAt()).isEqualTo(Instant.parse("2026-10-18T10:00:00.123456Z"));
+    }
+
+    @Test
     void findsTheSamePokemonWhetherAskedByNameOrNumber() {
         catalog.add(aPokemonDetails().build());
 

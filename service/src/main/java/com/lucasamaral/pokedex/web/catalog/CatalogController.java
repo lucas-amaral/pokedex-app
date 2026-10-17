@@ -4,6 +4,7 @@ import com.lucasamaral.pokedex.application.catalog.BrowseCatalogUseCase;
 import com.lucasamaral.pokedex.application.catalog.GetPokemonDetailsUseCase;
 import com.lucasamaral.pokedex.application.pagination.PageQuery;
 import com.lucasamaral.pokedex.web.pagination.PageResponse;
+import com.lucasamaral.pokedex.web.validation.PokemonKeyFormat;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -25,8 +26,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/catalog/pokemon")
 @Tag(name = "Catalog", description = "Pokémon served live from PokeAPI")
 class CatalogController {
-
-    private static final String ID_OR_NAME = "[A-Za-z0-9-]{1,50}";
 
     private final BrowseCatalogUseCase browseCatalog;
     private final GetPokemonDetailsUseCase getPokemonDetails;
@@ -64,7 +63,7 @@ class CatalogController {
             content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ProblemDetail.class)))
     PokemonDetailsResponse details(
             @Parameter(description = "Pokédex number (25) or name (pikachu)", example = "pikachu")
-            @PathVariable @Pattern(regexp = ID_OR_NAME, message = "must be a Pokédex number or a name made of letters, digits and hyphens")
+            @PathVariable @Pattern(regexp = PokemonKeyFormat.PATTERN, message = PokemonKeyFormat.MESSAGE)
             String idOrName) {
         return PokemonDetailsResponse.from(getPokemonDetails.getDetails(idOrName));
     }

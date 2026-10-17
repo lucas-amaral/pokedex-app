@@ -25,7 +25,7 @@ public record PokemonDetailsResponse(
 
     public record StatResponse(String name, int value) {
 
-        static StatResponse from(BaseStat stat) {
+        public static StatResponse from(BaseStat stat) {
             return new StatResponse(stat.name(), stat.value());
         }
     }
