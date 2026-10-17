@@ -5,6 +5,9 @@ spring:
     cache-names: pokeapi-pokemon-list,pokeapi-pokemon,pokeapi-species
     caffeine:
       spec: maximumSize=2000,expireAfterWrite=24h,recordStats
+  threads:
+    virtual:
+      enabled: true
   web:
     locale: en
     locale-resolver: fixed

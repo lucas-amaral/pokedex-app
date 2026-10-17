@@ -32,6 +32,13 @@ class PageTest {
     }
 
     @Test
+    void hasNoNextPageBeyondTheLastPossiblePageNumber() {
+        var page = new Page<String>(List.of(), new PageQuery(Integer.MAX_VALUE, 50), 1351);
+
+        assertThat(page.hasNext()).isFalse();
+    }
+
+    @Test
     void mapsContentAndKeepsPaginationData() {
         var page = new Page<>(List.of(1, 2), new PageQuery(3, 2), 10);
 

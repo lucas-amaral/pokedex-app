@@ -35,6 +35,15 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(Exception.class)
+    ProblemDetail handleUnexpected(Exception exception) {
+        log.error("Unexpected error", exception);
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Something went wrong on our side. Try again later.");
+        problem.setTitle("Unexpected error");
+        return problem;
+    }
+
     @Override
     protected ResponseEntity<Object> handleHandlerMethodValidationException(
             HandlerMethodValidationException exception, HttpHeaders headers, HttpStatusCode status, WebRequest request) {

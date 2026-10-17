@@ -22,7 +22,7 @@ public record Page<T>(List<T> content, PageQuery query, long totalElements) {
     }
 
     public boolean hasNext() {
-        return query.page() + 1 < totalPages();
+        return query.page() < totalPages() - 1;
     }
 
     public <R> Page<R> map(Function<? super T, ? extends R> mapper) {

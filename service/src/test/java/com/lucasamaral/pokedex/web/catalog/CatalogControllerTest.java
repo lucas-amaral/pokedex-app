@@ -110,6 +110,19 @@ class CatalogControllerTest {
     }
 
     @Test
+    void answersUnexpectedFailuresAsProblemDetailsWithoutInternals() {
+        given(browseCatalog.browse(any())).willThrow(new IllegalStateException("secret internal state"));
+
+        var response = mvc.get().uri(URL);
+
+        assertThat(response)
+                .hasStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                .hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
+        assertThat(response).bodyJson().extractingPath("$.title").isEqualTo("Unexpected error");
+        assertThat(response).bodyJson().extractingPath("$.detail").asString().doesNotContain("secret");
+    }
+
+    @Test
     void answersServiceUnavailableWhenPokeApiIsDown() {
         given(browseCatalog.browse(any()))
                 .willThrow(new CatalogUnavailableException("PokeAPI request failed: 500", new IOException("boom")));
