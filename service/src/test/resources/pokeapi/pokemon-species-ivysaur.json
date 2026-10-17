@@ -37,36 +37,25 @@
       }
     },
     {
-      "flavor_text": "When the bulb on\nits back grows\nlarge, it appears\fto lose the\nability to stand\non its hind legs.",
+      "flavor_text": "つぼみが　背中に　ついていて\n養分を　吸収していくと\n大きな　花が　咲くという。",
       "language": {
-        "name": "en",
-        "url": "https://pokeapi.co/api/v2/language/9/"
+        "name": "ja",
+        "url": "https://pokeapi.co/api/v2/language/11/"
       },
       "version": {
-        "name": "blue",
-        "url": "https://pokeapi.co/api/v2/version/2/"
+        "name": "x",
+        "url": "https://pokeapi.co/api/v2/version/23/"
       }
     },
     {
-      "flavor_text": "The bulb on its\nback grows by\ndrawing energy.\fIt gives off an\naroma when it is\nready to bloom.",
+      "flavor_text": "Exposure to sunlight adds to its strength.\nSunlight also makes the bud on its back\ngrow larger.",
       "language": {
         "name": "en",
         "url": "https://pokeapi.co/api/v2/language/9/"
       },
       "version": {
-        "name": "yellow",
-        "url": "https://pokeapi.co/api/v2/version/3/"
-      }
-    },
-    {
-      "flavor_text": "Exposure to sun­\nlight adds to its\nstrength. Sunlight\falso makes the bud\non its back grow\nlarger.",
-      "language": {
-        "name": "en",
-        "url": "https://pokeapi.co/api/v2/language/9/"
-      },
-      "version": {
-        "name": "gold",
-        "url": "https://pokeapi.co/api/v2/version/4/"
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
       }
     }
   ],

@@ -1,6 +1,5 @@
 package com.lucasamaral.pokedex.infrastructure.pokeapi;
 
-import com.lucasamaral.pokedex.application.catalog.PokemonCatalog;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,8 +20,9 @@ public class PokeApiConfig {
         return createClient(builder, properties);
     }
 
+    /** One adapter serves both catalog ports: browsing (US01) and details (US02). */
     @Bean
-    PokemonCatalog pokemonCatalog(PokeApiClient client, AsyncTaskExecutor applicationTaskExecutor) {
+    PokeApiCatalogAdapter pokeApiCatalogAdapter(PokeApiClient client, AsyncTaskExecutor applicationTaskExecutor) {
         return new PokeApiCatalogAdapter(client, applicationTaskExecutor);
     }
 

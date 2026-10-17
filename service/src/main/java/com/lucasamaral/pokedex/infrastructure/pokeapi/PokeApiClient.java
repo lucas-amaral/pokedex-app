@@ -25,4 +25,8 @@ interface PokeApiClient {
     @GetExchange("/pokemon-species/{name}")
     @Cacheable(cacheNames = "pokeapi-species", sync = true)
     PokeApiResponses.Species getSpecies(@PathVariable String name);
+
+    @GetExchange("/evolution-chain/{id}")
+    @Cacheable(cacheNames = "pokeapi-evolution-chain", sync = true)
+    PokeApiResponses.EvolutionChain getEvolutionChain(@PathVariable int id);
 }

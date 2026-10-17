@@ -2,13 +2,17 @@ package com.lucasamaral.pokedex.infrastructure.pokeapi;
 
 import com.lucasamaral.pokedex.application.catalog.CatalogUnavailableException;
 import com.lucasamaral.pokedex.application.catalog.PokemonCatalog;
+import com.lucasamaral.pokedex.application.catalog.PokemonDetailsCatalog;
 import com.lucasamaral.pokedex.application.pagination.Page;
 import com.lucasamaral.pokedex.application.pagination.PageQuery;
+import com.lucasamaral.pokedex.domain.pokemon.PokemonDetails;
 import com.lucasamaral.pokedex.domain.pokemon.PokemonSummary;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
@@ -20,7 +24,7 @@ import java.util.function.Supplier;
  * PokeAPI's list endpoint returns only names, so each entry needs two more calls (pokemon and species).
  * Entries are fetched in parallel on the given executor (virtual threads in production).
  */
-final class PokeApiCatalogAdapter implements PokemonCatalog {
+final class PokeApiCatalogAdapter implements PokemonCatalog, PokemonDetailsCatalog {
 
     private final PokeApiClient client;
     private final Executor executor;
@@ -37,6 +41,21 @@ final class PokeApiCatalogAdapter implements PokemonCatalog {
                 .map(entry -> CompletableFuture.supplyAsync(() -> fetchSummary(entry.name()), executor))
                 .toList();
         return new Page<>(joinAll(futures), query, list.count());
+    }
+
+    @Override
+    public Optional<PokemonDetails> findDetails(String idOrName) {
+        PokeApiResponses.Pokemon pokemon;
+        try {
+            pokemon = client.getPokemon(idOrName);
+        } catch (HttpClientErrorException.NotFound e) {
+            return Optional.empty();
+        } catch (RestClientException e) {
+            throw unavailable(e);
+        }
+        var species = call(() -> client.getSpecies(pokemon.species().name()));
+        var chain = call(() -> client.getEvolutionChain(PokeApiMapper.idFromUrl(species.evolutionChain().url())));
+        return Optional.of(PokeApiMapper.toDetails(pokemon, species, chain));
     }
 
     private PokemonSummary fetchSummary(String name) {
@@ -60,7 +79,11 @@ final class PokeApiCatalogAdapter implements PokemonCatalog {
         try {
             return request.get();
         } catch (RestClientException e) {
-            throw new CatalogUnavailableException("PokeAPI request failed: " + e.getMessage(), e);
+            throw unavailable(e);
         }
+    }
+
+    private static CatalogUnavailableException unavailable(RestClientException cause) {
+        return new CatalogUnavailableException("PokeAPI request failed: " + cause.getMessage(), cause);
     }
 }

@@ -2,7 +2,10 @@ package com.lucasamaral.pokedex.infrastructure.config;
 
 import com.lucasamaral.pokedex.application.catalog.BrowseCatalogService;
 import com.lucasamaral.pokedex.application.catalog.BrowseCatalogUseCase;
+import com.lucasamaral.pokedex.application.catalog.GetPokemonDetailsService;
+import com.lucasamaral.pokedex.application.catalog.GetPokemonDetailsUseCase;
 import com.lucasamaral.pokedex.application.catalog.PokemonCatalog;
+import com.lucasamaral.pokedex.application.catalog.PokemonDetailsCatalog;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,5 +18,10 @@ public class UseCaseConfig {
     @Bean
     BrowseCatalogUseCase browseCatalogUseCase(PokemonCatalog pokemonCatalog) {
         return new BrowseCatalogService(pokemonCatalog);
+    }
+
+    @Bean
+    GetPokemonDetailsUseCase getPokemonDetailsUseCase(PokemonDetailsCatalog pokemonDetailsCatalog) {
+        return new GetPokemonDetailsService(pokemonDetailsCatalog);
     }
 }

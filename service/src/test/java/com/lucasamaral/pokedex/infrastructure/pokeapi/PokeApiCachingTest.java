@@ -3,6 +3,7 @@ package com.lucasamaral.pokedex.infrastructure.pokeapi;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.lucasamaral.pokedex.application.catalog.CatalogUnavailableException;
 import com.lucasamaral.pokedex.application.catalog.PokemonCatalog;
+import com.lucasamaral.pokedex.application.catalog.PokemonDetailsCatalog;
 import com.lucasamaral.pokedex.application.pagination.PageQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,9 @@ class PokeApiCachingTest {
 
     @Autowired
     private PokemonCatalog catalog;
+
+    @Autowired
+    private PokemonDetailsCatalog detailsCatalog;
 
     @Autowired
     private CacheManager cacheManager;
@@ -83,6 +87,19 @@ class PokeApiCachingTest {
 
         pokeApi.stubFor(get("/pokemon/ivysaur").willReturn(okJson(read("pokeapi/pokemon-ivysaur.json"))));
         assertThat(catalog.findSummaries(new PageQuery(0, 2)).content()).hasSize(2);
+    }
+
+    @Test
+    void servesRepeatedDetailsWithoutCallingPokeApiAgain() {
+        stubFirstTwoPokemon();
+        pokeApi.stubFor(get("/evolution-chain/1").willReturn(okJson(read("pokeapi/evolution-chain-1.json"))));
+
+        var first = detailsCatalog.findDetails("bulbasaur");
+        var second = detailsCatalog.findDetails("bulbasaur");
+
+        assertThat(second).isEqualTo(first);
+        pokeApi.verify(exactly(1), getRequestedFor(urlEqualTo("/pokemon/bulbasaur")));
+        pokeApi.verify(exactly(1), getRequestedFor(urlEqualTo("/evolution-chain/1")));
     }
 
     private static void stubFirstTwoPokemon() {

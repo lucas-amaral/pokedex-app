@@ -12,26 +12,26 @@ class PokeApiMapperTest {
 
     @Test
     void leavesSpriteEmptyWhenPokeApiSendsNoSprites() {
-        var pokemon = new PokeApiResponses.Pokemon(1, "bulbasaur", 69, SPECIES, null, List.of());
+        var pokemon = new PokeApiResponses.Pokemon(1, "bulbasaur", 7, 69, SPECIES, null, List.of(), List.of(), List.of());
 
         assertThat(PokeApiMapper.toSummary(pokemon, speciesWithGenera(List.of())).spriteUrl()).isNull();
     }
 
     @Test
     void leavesCategoryEmptyWhenPokeApiSendsNoGenera() {
-        var pokemon = new PokeApiResponses.Pokemon(1, "bulbasaur", 69, SPECIES, new PokeApiResponses.Sprites(null), List.of());
+        var pokemon = new PokeApiResponses.Pokemon(1, "bulbasaur", 7, 69, SPECIES, new PokeApiResponses.Sprites(null, null), List.of(), List.of(), List.of());
 
         assertThat(PokeApiMapper.toSummary(pokemon, speciesWithGenera(null)).category()).isNull();
     }
 
     @Test
     void returnsNoAbilitiesWhenPokeApiSendsNone() {
-        var pokemon = new PokeApiResponses.Pokemon(1, "bulbasaur", 69, SPECIES, new PokeApiResponses.Sprites(null), null);
+        var pokemon = new PokeApiResponses.Pokemon(1, "bulbasaur", 7, 69, SPECIES, new PokeApiResponses.Sprites(null, null), null, List.of(), List.of());
 
         assertThat(PokeApiMapper.toSummary(pokemon, speciesWithGenera(List.of())).abilities()).isEmpty();
     }
 
     private static PokeApiResponses.Species speciesWithGenera(List<PokeApiResponses.Genus> genera) {
-        return new PokeApiResponses.Species(1, "bulbasaur", genera);
+        return new PokeApiResponses.Species(1, "bulbasaur", genera, List.of(), null);
     }
 }
