@@ -1,0 +1,111 @@
+import { screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { http, HttpResponse } from 'msw'
+import { describe, expect, it } from 'vitest'
+import { renderRoute } from '../../test/renderRoute'
+import { server } from '../../test/server'
+import { bulbasaurDetails, eeveeDetails } from './fixtures'
+
+const DETAILS = '*/api/v1/catalog/pokemon/:idOrName'
+
+function respondWith(...pokemon: (typeof bulbasaurDetails)[]) {
+  server.use(
+    http.get(DETAILS, ({ params }) => {
+      const found = pokemon.find((candidate) => candidate.name === params.idOrName)
+      return found
+        ? HttpResponse.json(found)
+        : HttpResponse.json(
+            { status: 404, title: 'Pokémon not found', detail: `No Pokémon found for '${String(params.idOrName)}'` },
+            { status: 404 },
+          )
+    }),
+  )
+}
+
+describe('PokemonDetailsPage', () => {
+  it('shows the artwork, identity and profile of the Pokémon', async () => {
+    respondWith(bulbasaurDetails)
+    renderRoute('/pokemon/bulbasaur')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Bulbasaur' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Bulbasaur' })).toHaveAttribute('src', bulbasaurDetails.artworkUrl)
+    expect(screen.getByText('#001')).toBeInTheDocument()
+    expect(screen.getByText('Seed Pokémon')).toBeInTheDocument()
+    expect(screen.getByText(bulbasaurDetails.description!)).toBeInTheDocument()
+    expect(within(screen.getByRole('list', { name: 'Types' })).getAllByRole('listitem').map((item) => item.textContent)).toEqual([
+      'Grass',
+      'Poison',
+    ])
+    expect(screen.getByText('0.7 m')).toBeInTheDocument()
+    expect(screen.getByText('6.9 kg')).toBeInTheDocument()
+  })
+
+  it('shows each base stat as a bar and their total', async () => {
+    respondWith(bulbasaurDetails)
+    renderRoute('/pokemon/bulbasaur')
+
+    expect(await screen.findByRole('meter', { name: 'HP' })).toHaveAttribute('aria-valuenow', '45')
+    expect(screen.getByRole('meter', { name: 'Sp. Atk' })).toHaveAttribute('aria-valuenow', '65')
+    expect(screen.getByText('318')).toBeInTheDocument()
+  })
+
+  it('shows the evolution chain with how each stage is reached', async () => {
+    respondWith(bulbasaurDetails)
+    renderRoute('/pokemon/bulbasaur')
+
+    const chain = await screen.findByRole('region', { name: 'Evolution chain' })
+    expect(within(chain).getByRole('link', { name: /Bulbasaur/ })).toHaveAttribute('aria-current', 'page')
+    expect(within(chain).getByRole('link', { name: /Ivysaur/ })).toHaveAttribute('href', '/pokemon/ivysaur')
+    expect(chain).toHaveTextContent('Lv. 16')
+    expect(chain).toHaveTextContent('Lv. 32')
+  })
+
+  it('shows every branch of a branching chain', async () => {
+    respondWith(eeveeDetails)
+    renderRoute('/pokemon/eevee')
+
+    const chain = await screen.findByRole('region', { name: 'Evolution chain' })
+    expect(within(chain).getAllByRole('link')).toHaveLength(4)
+    expect(chain).toHaveTextContent('Water Stone')
+    expect(chain).toHaveTextContent('Thunder Stone')
+  })
+
+  it('opens another stage of the chain', async () => {
+    respondWith(bulbasaurDetails, { ...bulbasaurDetails, id: 2, name: 'ivysaur' })
+    const user = userEvent.setup()
+    const { router } = renderRoute('/pokemon/bulbasaur')
+
+    const chain = await screen.findByRole('region', { name: 'Evolution chain' })
+    await user.click(within(chain).getByRole('link', { name: /Ivysaur/ }))
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Ivysaur' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/pokemon/ivysaur')
+  })
+
+  it('explains when the Pokémon does not exist', async () => {
+    respondWith()
+    renderRoute('/pokemon/missingno')
+
+    expect(await screen.findByRole('heading', { name: 'Pokémon not found' })).toBeInTheDocument()
+    expect(screen.getByText("No Pokémon found for 'missingno'")).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Back to the catalog' })).toHaveAttribute('href', '/')
+  })
+
+  it('lets the user retry when the service fails', async () => {
+    let calls = 0
+    server.use(
+      http.get(DETAILS, () => {
+        calls += 1
+        return calls === 1
+          ? HttpResponse.json({ status: 503, title: 'Catalog unavailable' }, { status: 503 })
+          : HttpResponse.json(bulbasaurDetails)
+      }),
+    )
+    const user = userEvent.setup()
+    renderRoute('/pokemon/bulbasaur')
+
+    await user.click(await screen.findByRole('button', { name: 'Try again' }))
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Bulbasaur' })).toBeInTheDocument()
+  })
+})

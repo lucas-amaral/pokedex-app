@@ -1,10 +1,9 @@
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
+import { renderRoute } from '../../test/renderRoute'
 import { server } from '../../test/server'
-import { createQueryWrapper } from '../../test/queryClient'
-import { CatalogPage } from './CatalogPage'
 import { bulbasaur, catalogPage, ivysaur } from './fixtures'
 
 const CATALOG = '*/api/v1/catalog/pokemon'
@@ -18,8 +17,8 @@ function respondWithPages() {
   )
 }
 
-function renderPage() {
-  return render(<CatalogPage />, { wrapper: createQueryWrapper() })
+function renderPage(path = '/') {
+  return renderRoute(path)
 }
 
 describe('CatalogPage', () => {
@@ -35,15 +34,30 @@ describe('CatalogPage', () => {
   it('moves to the next page and back', async () => {
     respondWithPages()
     const user = userEvent.setup()
-    renderPage()
+    const { router } = renderPage()
     await screen.findByRole('article', { name: 'Bulbasaur' })
 
     await user.click(screen.getByRole('button', { name: 'Next page' }))
 
     expect(await screen.findByRole('article', { name: 'Ivysaur' })).toBeInTheDocument()
     expect(screen.getByText('Page 2 of 68')).toBeInTheDocument()
+    expect(router.state.location.search).toBe('?page=2')
 
     await user.click(screen.getByRole('button', { name: 'Previous page' }))
+
+    expect(await screen.findByRole('article', { name: 'Bulbasaur' })).toBeInTheDocument()
+  })
+
+  it('opens the page given in the address, so a page can be shared or returned to', async () => {
+    respondWithPages()
+    renderPage('/?page=2')
+
+    expect(await screen.findByRole('article', { name: 'Ivysaur' })).toBeInTheDocument()
+  })
+
+  it('falls back to the first page when the address has an invalid page', async () => {
+    respondWithPages()
+    renderPage('/?page=abc')
 
     expect(await screen.findByRole('article', { name: 'Bulbasaur' })).toBeInTheDocument()
   })

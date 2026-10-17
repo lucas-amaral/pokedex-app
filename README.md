@@ -11,7 +11,7 @@ The project is built story by story, test-first, on a Clean Architecture backend
 | Story | What the user can do | Status |
 | --- | --- | --- |
 | US01 Browse | Page through Pokémon with sprite, category, weight and abilities | Done (API and UI) |
-| US02 Details | See one Pokémon's artwork, base stats, description and evolution chain | API done; UI planned |
+| US02 Details | See one Pokémon's artwork, base stats, description and evolution chain | Done (API and UI) |
 | US03 Sync | Copy a Pokémon into the local database to add proprietary fields | Planned |
 | US04 Edit | Update the proprietary fields of a stored Pokémon, with validation | Planned |
 | Users | Register, log in, public versus protected routes | Planned |
@@ -84,6 +84,7 @@ flowchart LR
 | Back-end tests | JUnit 5, AssertJ, Mockito, WireMock, ArchUnit, JaCoCo | Unit, HTTP-contract, architecture and coverage |
 | Front-end | React 19, TypeScript, Vite 8, Tailwind 4 | Typed components, fast dev server, responsive utility CSS |
 | Server state | TanStack Query | Caching, loading and error states, pagination |
+| Routing | React Router | One address per page; the catalog page lives in the address |
 | Front-end tests | Vitest, Testing Library, MSW | Tests that use the UI as a user would, against a fake API |
 
 ## Testing
@@ -105,7 +106,6 @@ before submission.
 
 ## Roadmap
 
-- US02 detail screen
 - US03 and US04: PostgreSQL with Flyway, local collection with proprietary fields
 - User registration, login and protected routes (JWT)
 - Seed data (Generations 1 and 2) and demo credentials

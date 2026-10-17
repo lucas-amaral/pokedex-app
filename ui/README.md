@@ -23,6 +23,17 @@ service needs no CORS setup. To point it at a service on another port:
 API_PROXY_TARGET=http://localhost:8081 npm run dev
 ```
 
+## Pages
+
+| Address | Page |
+| --- | --- |
+| `/` and `/?page=N` | Catalog, page N (counted from 1, so the address can be shared or bookmarked) |
+| `/pokemon/:idOrName` | One Pokémon: artwork, types, height, weight, abilities, base stats, description, evolution chain |
+| anything else | Page not found |
+
+Routing uses React Router. In production the web server must answer every unknown path with `index.html` so these
+addresses work on reload.
+
 ## Scripts
 
 | Script | What it does |
@@ -39,12 +50,13 @@ API_PROXY_TARGET=http://localhost:8081 npm run dev
 
 ```
 src/
-├── main.tsx            Entry point: React root and the query client provider
-├── app/                Application shell (header, navigation) and query client defaults
+├── main.tsx            Entry point: router and query client providers
+├── app/                Layout (header, navigation), route table, not-found page, query client defaults
 ├── api/                HTTP helper, shared API types, ApiError
-├── components/         Reusable UI pieces (Pagination, ErrorState)
+├── components/         Reusable UI pieces (Pagination, ErrorState, TypeBadges)
 ├── features/
-│   └── catalog/        Catalog screen: API call, useCatalogPage hook, PokemonCard, CatalogPage
+│   ├── catalog/        Catalog screen: API call, useCatalogPage hook, PokemonCard, CatalogPage
+│   └── pokemon-details/ Detail screen: API call, usePokemonDetails hook, StatBars, EvolutionChain
 ├── lib/                Formatting helpers (names, Pokédex numbers, weight)
 └── test/               Test setup: MSW server, query client wrapper
 ```
@@ -57,7 +69,8 @@ Shared pieces move to `components/`, `api/` or `lib/` only when a second feature
 | Kind of state | Where it lives | Why |
 | --- | --- | --- |
 | Data from the API | TanStack Query | Caching per query, loading and error states, retries, previous page kept while the next one loads |
-| Local UI state (current page) | `useState` in the screen | Only one screen needs it |
+| Current catalog page | The address (`?page=N`) | Survives reloads, can be shared, works with the browser's back button |
+| Where "Back to catalog" returns | React Router navigation state | Opening a Pokémon from page 7 and going back lands on page 7 again |
 
 The query client retries server and network failures twice and never retries 4xx responses, which would fail again.
 
@@ -82,4 +95,5 @@ the service and offer a retry.
 | Vite 8 | Instant dev server, fast production build, dev proxy |
 | Tailwind CSS 4 | Responsive layout with utility classes (1 column on phones, up to 5 on wide screens) |
 | TanStack Query | Server state without hand-written loading, error and caching code |
+| React Router | Addresses for each page, links, and the catalog page kept in the address |
 | oxlint | The linter shipped with the Vite template; fast, with React hook rules |

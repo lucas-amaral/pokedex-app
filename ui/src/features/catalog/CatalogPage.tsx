@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
+import { useSearchParams } from 'react-router'
 import { ErrorState } from '../../components/ErrorState'
 import { Pagination } from '../../components/Pagination'
 import { PokemonCard } from './PokemonCard'
@@ -6,13 +7,20 @@ import { useCatalogPage } from './useCatalogPage'
 
 const PAGE_SIZE = 20
 
+/** The address shows pages counted from 1 (?page=2); the API counts from 0. */
+function pageFromAddress(value: string | null): number {
+  const page = Number(value)
+  return Number.isInteger(page) && page >= 1 ? page - 1 : 0
+}
+
 export function CatalogPage() {
-  const [page, setPage] = useState(0)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const page = pageFromAddress(searchParams.get('page'))
   const headingRef = useRef<HTMLHeadingElement>(null)
   const { data, error, isPending, isPlaceholderData, refetch } = useCatalogPage({ page, size: PAGE_SIZE })
 
   function goToPage(next: number) {
-    setPage(next)
+    setSearchParams({ page: String(next + 1) })
     headingRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
   }
 

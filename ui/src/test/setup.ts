@@ -3,6 +3,9 @@ import { cleanup } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll } from 'vitest'
 import { server } from './server'
 
+// jsdom does not implement scrolling; React Router's ScrollRestoration calls it on navigation.
+window.scrollTo = () => {}
+
 beforeAll(() => {
   server.listen({ onUnhandledFrame: 'error' })
 })
