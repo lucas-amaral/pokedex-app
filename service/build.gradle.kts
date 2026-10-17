@@ -19,6 +19,9 @@ repositories {
     mavenCentral()
 }
 
+// Mockito needs its Java agent declared up front: JDK 21+ warns about agents attached at runtime.
+val mockitoAgent = configurations.create("mockitoAgent")
+
 dependencies {
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.spring.boot.starter.restclient)
@@ -32,11 +35,12 @@ dependencies {
     testImplementation(libs.archunit.junit5)
     testImplementation(libs.wiremock.standalone)
     testRuntimeOnly(libs.junit.platform.launcher)
+    mockitoAgent(libs.mockito.core) { isTransitive = false }
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
-    jvmArgs("-Xshare:off")
+    jvmArgs("-Xshare:off", "-javaagent:${mockitoAgent.asPath}")
     finalizedBy(tasks.jacocoTestReport)
 }
 

@@ -1,6 +1,9 @@
 spring:
   application:
     name: pokedex-service
+  web:
+    locale: en
+    locale-resolver: fixed
 
 pokedex:
   api:
@@ -17,6 +20,9 @@ management:
         include: health,info
 
 springdoc:
+  api-docs:
+    enabled: true
   swagger-ui:
+    enabled: true
     operations-sorter: method
     tags-sorter: alpha
