@@ -1,3 +1,5 @@
+import { CatalogPage } from '../features/catalog/CatalogPage'
+
 export function App() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -8,14 +10,14 @@ export function App() {
             Pokédex
           </a>
           <nav aria-label="Main" className="flex gap-4 text-sm">
-            <a href="/" className="font-medium text-red-600">
+            <a href="/" aria-current="page" className="font-medium text-red-600">
               Catalog
             </a>
           </nav>
         </div>
       </header>
       <main className="mx-auto max-w-7xl px-4 py-6">
-        <h1 className="text-xl font-semibold">Catalog</h1>
+        <CatalogPage />
       </main>
     </div>
   )
