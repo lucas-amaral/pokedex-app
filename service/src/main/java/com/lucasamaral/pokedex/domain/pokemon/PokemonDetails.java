@@ -11,6 +11,7 @@ import static com.lucasamaral.pokedex.domain.pokemon.Preconditions.requirePositi
  *
  * @param name        PokeAPI name of this Pokémon, which can be an alternate form ("raichu-alola")
  * @param speciesName species it belongs to ("raichu"), as named in its evolution chain
+ * @param spriteUrl   small front sprite; {@code null} when PokeAPI has none
  * @param artworkUrl  official artwork; {@code null} when PokeAPI has none
  * @param category    species genus such as "Seed Pokémon"; {@code null} when PokeAPI has none
  * @param description English Pokédex entry; {@code null} when PokeAPI has none
@@ -19,6 +20,7 @@ public record PokemonDetails(
         int id,
         String name,
         String speciesName,
+        String spriteUrl,
         String artworkUrl,
         String category,
         String description,

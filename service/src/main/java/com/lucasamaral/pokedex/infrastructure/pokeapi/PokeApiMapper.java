@@ -32,7 +32,7 @@ final class PokeApiMapper {
         return new PokemonSummary(
                 pokemon.id(),
                 pokemon.name(),
-                pokemon.sprites() == null ? null : pokemon.sprites().frontDefault(),
+                sprite(pokemon),
                 englishGenus(species),
                 Weight.ofHectograms(pokemon.weight()),
                 abilities(pokemon));
@@ -44,6 +44,7 @@ final class PokeApiMapper {
                 pokemon.id(),
                 pokemon.name(),
                 pokemon.species().name(),
+                sprite(pokemon),
                 artwork(pokemon),
                 englishGenus(species),
                 englishDescription(species),
@@ -59,6 +60,10 @@ final class PokeApiMapper {
     static int idFromUrl(String url) {
         var trimmed = url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
         return Integer.parseInt(trimmed.substring(trimmed.lastIndexOf('/') + 1));
+    }
+
+    private static String sprite(PokeApiResponses.Pokemon pokemon) {
+        return pokemon.sprites() == null ? null : pokemon.sprites().frontDefault();
     }
 
     private static String artwork(PokeApiResponses.Pokemon pokemon) {

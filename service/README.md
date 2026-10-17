@@ -93,6 +93,7 @@ curl 'http://localhost:8080/api/v1/catalog/pokemon/eevee'
   "id": 133,
   "name": "eevee",
   "speciesName": "eevee",
+  "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png",
   "artworkUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/133.png",
   "category": "Evolution Pokémon",
   "description": "Harbors the potential to evolve into manifold forms. Within Eevee lies the key to the mysteries of Pokémon evolution—I'm certain of it.",

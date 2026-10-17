@@ -56,6 +56,7 @@ class PokeApiCatalogAdapterDetailsTest {
         PokemonDetails bulbasaur = adapter.findDetails("bulbasaur").orElseThrow();
 
         assertThat(bulbasaur.id()).isEqualTo(1);
+        assertThat(bulbasaur.spriteUrl()).isEqualTo(SPRITES + "1.png");
         assertThat(bulbasaur.artworkUrl()).isEqualTo(SPRITES + "other/official-artwork/1.png");
         assertThat(bulbasaur.category()).isEqualTo("Seed Pokémon");
         assertThat(bulbasaur.height()).isEqualTo(Height.ofDecimeters(7));
