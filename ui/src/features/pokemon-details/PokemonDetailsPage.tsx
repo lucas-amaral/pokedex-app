@@ -1,12 +1,13 @@
 import { Link, useParams } from 'react-router'
 import { useCatalogReturnPath } from '../../app/catalogReturn'
 import { ErrorState } from '../../components/ErrorState'
+import { StatBars } from '../../components/StatBars'
 import { TypeBadges } from '../../components/TypeBadges'
 import { formatDexNumber, formatHeight, formatPokemonName, formatWeight } from '../../lib/format'
 import { useDocumentTitle } from '../../lib/useDocumentTitle'
+import { AddToCollectionButton } from '../collection/AddToCollectionButton'
 import { EvolutionChain } from './EvolutionChain'
 import { isValidIdOrName } from './idOrName'
-import { StatBars } from './StatBars'
 import type { PokemonDetails } from './types'
 import { usePokemonDetails } from './usePokemonDetails'
 
@@ -76,6 +77,7 @@ function Details({ pokemon }: { pokemon: PokemonDetails }) {
           <p className="text-sm text-slate-500">{pokemon.category ?? 'Unknown category'}</p>
         </div>
         <TypeBadges types={pokemon.types} />
+        <AddToCollectionButton idOrName={pokemon.name} />
         <dl className="grid grid-cols-2 gap-2 text-sm">
           <div className="rounded-lg bg-slate-50 p-2">
             <dt className="text-xs text-slate-500">Height</dt>

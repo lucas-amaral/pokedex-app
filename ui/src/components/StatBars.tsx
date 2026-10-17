@@ -1,5 +1,9 @@
-import { formatStatName } from '../../lib/format'
-import type { Stat } from './types'
+import { formatStatName } from '../lib/format'
+
+export interface Stat {
+  name: string
+  value: number
+}
 
 const MAX_STAT = 255
 

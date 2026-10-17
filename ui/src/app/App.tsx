@@ -18,6 +18,12 @@ export function App() {
             >
               Catalog
             </NavLink>
+            <NavLink
+              to="/collection"
+              className={({ isActive }) => (isActive ? 'font-medium text-red-600' : 'text-slate-600 hover:text-slate-900')}
+            >
+              Your collection
+            </NavLink>
           </nav>
         </div>
       </header>

@@ -1,4 +1,7 @@
+import type { Stat } from '../../components/StatBars'
 import type { Ability } from '../catalog/types'
+
+export type { Stat }
 
 /** Mirrors the service's PokemonDetailsResponse. */
 export interface PokemonDetails {
@@ -16,11 +19,6 @@ export interface PokemonDetails {
   abilities: Ability[]
   stats: Stat[]
   evolutionChain: EvolutionNode
-}
-
-export interface Stat {
-  name: string
-  value: number
 }
 
 /** One stage of the evolution tree; the base form has no condition. */

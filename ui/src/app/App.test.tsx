@@ -21,6 +21,12 @@ describe('App', () => {
     expect(screen.getByRole('banner')).toHaveTextContent('Pokédex')
   })
 
+  it('offers navigation to the collection', () => {
+    renderRoute('/')
+
+    expect(screen.getByRole('link', { name: 'Your collection' })).toHaveAttribute('href', '/collection')
+  })
+
   it('opens on the catalog', async () => {
     renderRoute('/')
 

@@ -45,3 +45,10 @@ export function formatEvolutionCondition(condition: { trigger: string; minLevel:
   if (condition.item !== null) return formatPokemonName(condition.item)
   return formatPokemonName(condition.trigger)
 }
+
+const dateFormat = new Intl.DateTimeFormat('en', { dateStyle: 'medium' })
+
+/** "2026-10-18T10:00:00Z" → "Oct 18, 2026". */
+export function formatDate(isoInstant: string): string {
+  return dateFormat.format(new Date(isoInstant))
+}

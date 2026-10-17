@@ -83,6 +83,52 @@ describe('PokemonDetailsPage', () => {
     expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
   })
 
+  it('adds the Pokémon to the collection and links to it', async () => {
+    respondWith(bulbasaurDetails)
+    server.use(
+      http.post('*/api/v1/pokemon/sync', () =>
+        HttpResponse.json({ id: 'abc-123', pokeapiId: 1, name: 'bulbasaur' }, { status: 201 }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderRoute('/pokemon/bulbasaur')
+
+    await user.click(await screen.findByRole('button', { name: 'Add to collection' }))
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Added to your collection')
+    expect(screen.getByRole('link', { name: 'Open in your collection' })).toHaveAttribute('href', '/collection/abc-123')
+  })
+
+  it('says when the Pokémon was already in the collection', async () => {
+    respondWith(bulbasaurDetails)
+    server.use(
+      http.post('*/api/v1/pokemon/sync', () =>
+        HttpResponse.json({ id: 'abc-123', pokeapiId: 1, name: 'bulbasaur' }, { status: 200 }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderRoute('/pokemon/bulbasaur')
+
+    await user.click(await screen.findByRole('button', { name: 'Add to collection' }))
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Already in your collection; PokeAPI data refreshed')
+  })
+
+  it('explains when adding to the collection fails', async () => {
+    respondWith(bulbasaurDetails)
+    server.use(
+      http.post('*/api/v1/pokemon/sync', () =>
+        HttpResponse.json({ status: 503, title: 'Catalog unavailable', detail: 'Try again in a moment.' }, { status: 503 }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderRoute('/pokemon/bulbasaur')
+
+    await user.click(await screen.findByRole('button', { name: 'Add to collection' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Catalog unavailable')
+  })
+
   it('shows every branch of a branching chain', async () => {
     respondWith(eeveeDetails)
     renderRoute('/pokemon/eevee')
