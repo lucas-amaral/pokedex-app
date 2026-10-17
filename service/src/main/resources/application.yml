@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: pokedex-service
+
+pokedex:
+  api:
+    version: 0.0.1
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  swagger-ui:
+    operations-sorter: method
+    tags-sorter: alpha
