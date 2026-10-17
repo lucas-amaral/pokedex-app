@@ -5,6 +5,10 @@ spring:
 pokedex:
   api:
     version: 0.0.1
+  pokeapi:
+    base-url: https://pokeapi.co/api/v2
+    connect-timeout: 2s
+    read-timeout: 5s
 
 management:
   endpoints:
