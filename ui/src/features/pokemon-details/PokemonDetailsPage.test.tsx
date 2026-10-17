@@ -1,10 +1,10 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 import { renderRoute } from '../../test/renderRoute'
 import { server } from '../../test/server'
-import { bulbasaurDetails, eeveeDetails } from './fixtures'
+import { alolanRaichuDetails, bulbasaurDetails, eeveeDetails } from './fixtures'
 
 const DETAILS = '*/api/v1/catalog/pokemon/:idOrName'
 
@@ -58,6 +58,29 @@ describe('PokemonDetailsPage', () => {
     expect(within(chain).getByRole('link', { name: /Ivysaur/ })).toHaveAttribute('href', '/pokemon/ivysaur')
     expect(chain).toHaveTextContent('Lv. 16')
     expect(chain).toHaveTextContent('Lv. 32')
+  })
+
+  it('highlights the species of an alternate form in the chain', async () => {
+    respondWith(alolanRaichuDetails)
+    renderRoute('/pokemon/raichu-alola')
+
+    const chain = await screen.findByRole('region', { name: 'Evolution chain' })
+    expect(within(chain).getByRole('link', { name: /Raichu/ })).toHaveAttribute('aria-current', 'page')
+    expect(within(chain).getByRole('link', { name: /Pikachu/ })).not.toHaveAttribute('aria-current')
+  })
+
+  it('names the browser tab after the Pokémon', async () => {
+    respondWith(bulbasaurDetails)
+    renderRoute('/pokemon/bulbasaur')
+
+    await waitFor(() => expect(document.title).toBe('Bulbasaur · Pokédex'))
+  })
+
+  it('treats a malformed address as an unknown Pokémon without calling the service', async () => {
+    renderRoute('/pokemon/mew!')
+
+    expect(await screen.findByRole('heading', { name: 'Pokémon not found' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
   })
 
   it('shows every branch of a branching chain', async () => {

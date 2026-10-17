@@ -11,6 +11,7 @@ import java.util.List;
 public record PokemonDetailsResponse(
         int id,
         String name,
+        String speciesName,
         String artworkUrl,
         String category,
         String description,
@@ -59,6 +60,7 @@ public record PokemonDetailsResponse(
         return new PokemonDetailsResponse(
                 details.id(),
                 details.name(),
+                details.speciesName(),
                 details.artworkUrl(),
                 details.category(),
                 details.description(),

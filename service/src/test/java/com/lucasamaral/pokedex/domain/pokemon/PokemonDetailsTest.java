@@ -25,6 +25,19 @@ class PokemonDetailsTest {
     }
 
     @Test
+    void knowsTheSpeciesOfAnAlternateForm() {
+        var alolanRaichu = aPokemonDetails().withName("raichu-alola").withSpeciesName("raichu").build();
+
+        assertThat(alolanRaichu.name()).isEqualTo("raichu-alola");
+        assertThat(alolanRaichu.speciesName()).isEqualTo("raichu");
+    }
+
+    @Test
+    void rejectsBlankSpeciesName() {
+        assertThatIllegalArgumentException().isThrownBy(() -> aPokemonDetails().withSpeciesName(" ").build());
+    }
+
+    @Test
     void allowsMissingArtworkCategoryAndDescription() {
         var details = aPokemonDetails().withArtworkUrl(null).withCategory(null).withDescription(null).build();
 

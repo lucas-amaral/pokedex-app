@@ -53,6 +53,17 @@ class PokeApiMapperTest {
     }
 
     @Test
+    void keepsTheSpeciesOfAnAlternateForm() {
+        var species = new PokeApiResponses.NamedResource("raichu", "https://pokeapi.co/api/v2/pokemon-species/26/");
+        var alolanRaichu = new PokeApiResponses.Pokemon(10100, "raichu-alola", 7, 210, species, null, List.of(), List.of(), List.of());
+
+        var details = PokeApiMapper.toDetails(alolanRaichu, speciesWithGenera(List.of()), chainOf(List.of()));
+
+        assertThat(details.name()).isEqualTo("raichu-alola");
+        assertThat(details.speciesName()).isEqualTo("raichu");
+    }
+
+    @Test
     void readsTheIdAtTheEndOfAPokeApiLink() {
         assertThat(PokeApiMapper.idFromUrl("https://pokeapi.co/api/v2/evolution-chain/67/")).isEqualTo(67);
         assertThat(PokeApiMapper.idFromUrl("https://pokeapi.co/api/v2/pokemon-species/133")).isEqualTo(133);

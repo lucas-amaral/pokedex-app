@@ -80,7 +80,8 @@ curl 'http://localhost:8080/api/v1/catalog/pokemon?page=0&size=2'
 }
 ```
 
-The detail view returns the evolution chain as a tree: each stage lists the species it can evolve into and the
+`name` is the Pokémon itself and can be an alternate form (`raichu-alola`); `speciesName` is its species (`raichu`), as named in
+the evolution chain. The detail view returns the evolution chain as a tree: each stage lists the species it can evolve into and the
 condition (`trigger`, `minLevel`, `item`) to get there. Eevee is shown with 2 of its 8 branches.
 
 ```bash
@@ -91,6 +92,7 @@ curl 'http://localhost:8080/api/v1/catalog/pokemon/eevee'
 {
   "id": 133,
   "name": "eevee",
+  "speciesName": "eevee",
   "artworkUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/133.png",
   "category": "Evolution Pokémon",
   "description": "Harbors the potential to evolve into manifold forms. Within Eevee lies the key to the mysteries of Pokémon evolution—I'm certain of it.",

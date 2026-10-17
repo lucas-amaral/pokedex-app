@@ -5,6 +5,7 @@ const SPRITES = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprite
 export const bulbasaurDetails: PokemonDetails = {
   id: 1,
   name: 'bulbasaur',
+  speciesName: 'bulbasaur',
   artworkUrl: `${SPRITES}other/official-artwork/1.png`,
   category: 'Seed Pokémon',
   description: 'While it is young, it uses the nutrients that are stored in the seed on its back in order to grow.',
@@ -52,6 +53,7 @@ export const eeveeDetails: PokemonDetails = {
   ...bulbasaurDetails,
   id: 133,
   name: 'eevee',
+  speciesName: 'eevee',
   category: 'Evolution Pokémon',
   types: ['normal'],
   evolutionChain: {
@@ -63,6 +65,32 @@ export const eeveeDetails: PokemonDetails = {
       { speciesId: 134, name: 'vaporeon', spriteUrl: `${SPRITES}134.png`, condition: { trigger: 'use-item', minLevel: null, item: 'water-stone' }, evolvesTo: [] },
       { speciesId: 135, name: 'jolteon', spriteUrl: `${SPRITES}135.png`, condition: { trigger: 'use-item', minLevel: null, item: 'thunder-stone' }, evolvesTo: [] },
       { speciesId: 196, name: 'espeon', spriteUrl: `${SPRITES}196.png`, condition: { trigger: 'level-up', minLevel: null, item: null }, evolvesTo: [] },
+    ],
+  },
+}
+
+/** An alternate form: its own name differs from the species named in the evolution chain. */
+export const alolanRaichuDetails: PokemonDetails = {
+  ...bulbasaurDetails,
+  id: 10100,
+  name: 'raichu-alola',
+  speciesName: 'raichu',
+  types: ['electric', 'psychic'],
+  evolutionChain: {
+    speciesId: 172,
+    name: 'pichu',
+    spriteUrl: `${SPRITES}172.png`,
+    condition: null,
+    evolvesTo: [
+      {
+        speciesId: 25,
+        name: 'pikachu',
+        spriteUrl: `${SPRITES}25.png`,
+        condition: { trigger: 'level-up', minLevel: null, item: null },
+        evolvesTo: [
+          { speciesId: 26, name: 'raichu', spriteUrl: `${SPRITES}26.png`, condition: { trigger: 'use-item', minLevel: null, item: 'thunder-stone' }, evolvesTo: [] },
+        ],
+      },
     ],
   },
 }

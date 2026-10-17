@@ -28,7 +28,7 @@ API_PROXY_TARGET=http://localhost:8081 npm run dev
 | Address | Page |
 | --- | --- |
 | `/` and `/?page=N` | Catalog, page N (counted from 1, so the address can be shared or bookmarked) |
-| `/pokemon/:idOrName` | One Pokémon: artwork, types, height, weight, abilities, base stats, description, evolution chain |
+| `/pokemon/:idOrName` | One Pokémon: artwork, types, height, weight, abilities, base stats, description, evolution chain. A malformed address shows "Pokémon not found" without calling the service |
 | anything else | Page not found |
 
 Routing uses React Router. In production the web server must answer every unknown path with `index.html` so these
@@ -57,7 +57,7 @@ src/
 ├── features/
 │   ├── catalog/        Catalog screen: API call, useCatalogPage hook, PokemonCard, CatalogPage
 │   └── pokemon-details/ Detail screen: API call, usePokemonDetails hook, StatBars, EvolutionChain
-├── lib/                Formatting helpers (names, Pokédex numbers, weight)
+├── lib/                Formatting helpers and useDocumentTitle (names the browser tab after the page)
 └── test/               Test setup: MSW server, query client wrapper
 ```
 

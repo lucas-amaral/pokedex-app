@@ -47,6 +47,7 @@ class CatalogControllerDetailsTest {
                 {
                   "id": 1,
                   "name": "bulbasaur",
+                  "speciesName": "bulbasaur",
                   "artworkUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png",
                   "category": "Seed Pokémon",
                   "description": "A strange seed was planted on its back at birth. The plant sprouts and grows with this Pokémon.",

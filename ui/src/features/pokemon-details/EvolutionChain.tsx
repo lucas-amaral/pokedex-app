@@ -5,20 +5,21 @@ import type { EvolutionNode } from './types'
 
 interface EvolutionChainProps {
   chain: EvolutionNode
-  currentName: string
+  /** Species of the Pokémon on screen; an alternate form highlights its species. */
+  currentSpecies: string
 }
 
 /**
  * Draws the evolution tree recursively: each stage, then a column with every branch it can evolve into.
  * Stages stack vertically on phones and run left to right on wider screens.
  */
-export function EvolutionChain({ chain, currentName }: EvolutionChainProps) {
+export function EvolutionChain({ chain, currentSpecies }: EvolutionChainProps) {
   return (
     <section aria-labelledby="evolution-heading" className="space-y-3">
       <h2 id="evolution-heading" className="font-semibold">
         Evolution chain
       </h2>
-      <Stage node={chain} currentName={currentName} />
+      <Stage node={chain} currentSpecies={currentSpecies} />
     </section>
   )
 }
@@ -26,18 +27,18 @@ export function EvolutionChain({ chain, currentName }: EvolutionChainProps) {
 /** Above this many branches (Eevee has 8), they are laid out as a grid below the stage instead of a column beside it. */
 const MAX_BRANCHES_IN_A_ROW = 2
 
-function Stage({ node, currentName }: { node: EvolutionNode; currentName: string }) {
+function Stage({ node, currentSpecies }: { node: EvolutionNode; currentSpecies: string }) {
   const fansOut = node.evolvesTo.length > MAX_BRANCHES_IN_A_ROW
 
   if (fansOut) {
     return (
       <div className="flex flex-col items-center gap-3">
-        <StageLink node={node} isCurrent={node.name === currentName} />
+        <StageLink node={node} isCurrent={node.name === currentSpecies} />
         <ul className="grid grid-cols-2 gap-x-2 gap-y-3 sm:grid-cols-4">
           {node.evolvesTo.map((next) => (
             <li key={next.speciesId} className="flex flex-col items-center gap-1">
               <Condition node={next} arrow="↓" />
-              <Stage node={next} currentName={currentName} />
+              <Stage node={next} currentSpecies={currentSpecies} />
             </li>
           ))}
         </ul>
@@ -47,13 +48,13 @@ function Stage({ node, currentName }: { node: EvolutionNode; currentName: string
 
   return (
     <div className="flex flex-col items-center gap-2 sm:flex-row">
-      <StageLink node={node} isCurrent={node.name === currentName} />
+      <StageLink node={node} isCurrent={node.name === currentSpecies} />
       {node.evolvesTo.length > 0 && (
         <div className="flex flex-col gap-2">
           {node.evolvesTo.map((next) => (
             <div key={next.speciesId} className="flex flex-col items-center gap-2 sm:flex-row">
               <Condition node={next} arrow="→" />
-              <Stage node={next} currentName={currentName} />
+              <Stage node={next} currentSpecies={currentSpecies} />
             </div>
           ))}
         </div>

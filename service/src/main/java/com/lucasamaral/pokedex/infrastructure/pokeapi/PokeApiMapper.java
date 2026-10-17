@@ -43,6 +43,7 @@ final class PokeApiMapper {
         return new PokemonDetails(
                 pokemon.id(),
                 pokemon.name(),
+                pokemon.species().name(),
                 artwork(pokemon),
                 englishGenus(species),
                 englishDescription(species),

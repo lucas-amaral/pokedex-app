@@ -9,6 +9,8 @@ import static com.lucasamaral.pokedex.domain.pokemon.Preconditions.requirePositi
 /**
  * Everything shown on a Pokémon's detail page (US02).
  *
+ * @param name        PokeAPI name of this Pokémon, which can be an alternate form ("raichu-alola")
+ * @param speciesName species it belongs to ("raichu"), as named in its evolution chain
  * @param artworkUrl  official artwork; {@code null} when PokeAPI has none
  * @param category    species genus such as "Seed Pokémon"; {@code null} when PokeAPI has none
  * @param description English Pokédex entry; {@code null} when PokeAPI has none
@@ -16,6 +18,7 @@ import static com.lucasamaral.pokedex.domain.pokemon.Preconditions.requirePositi
 public record PokemonDetails(
         int id,
         String name,
+        String speciesName,
         String artworkUrl,
         String category,
         String description,
@@ -29,6 +32,7 @@ public record PokemonDetails(
     public PokemonDetails {
         requirePositive(id, "Pokémon id must be positive");
         requireNonBlank(name, "Pokémon name must not be blank");
+        requireNonBlank(speciesName, "Pokémon species name must not be blank");
         Objects.requireNonNull(height, "Pokémon height is required");
         Objects.requireNonNull(weight, "Pokémon weight is required");
         types = List.copyOf(Objects.requireNonNull(types, "Pokémon types are required"));

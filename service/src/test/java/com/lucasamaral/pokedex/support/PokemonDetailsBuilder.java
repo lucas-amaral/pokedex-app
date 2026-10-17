@@ -17,6 +17,7 @@ public final class PokemonDetailsBuilder {
 
     private int id = 1;
     private String name = "bulbasaur";
+    private String speciesName = "bulbasaur";
     private String artworkUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png";
     private String category = "Seed Pokémon";
     private String description = "A strange seed was planted on its back at birth. The plant sprouts and grows with this Pokémon.";
@@ -48,6 +49,11 @@ public final class PokemonDetailsBuilder {
         return this;
     }
 
+    public PokemonDetailsBuilder withSpeciesName(String speciesName) {
+        this.speciesName = speciesName;
+        return this;
+    }
+
     public PokemonDetailsBuilder withArtworkUrl(String artworkUrl) {
         this.artworkUrl = artworkUrl;
         return this;
@@ -74,7 +80,7 @@ public final class PokemonDetailsBuilder {
     }
 
     public PokemonDetails build() {
-        return new PokemonDetails(id, name, artworkUrl, category, description, height, weight, types, abilities, stats,
+        return new PokemonDetails(id, name, speciesName, artworkUrl, category, description, height, weight, types, abilities, stats,
                 evolutionChain);
     }
 }

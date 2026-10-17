@@ -3,7 +3,9 @@ import { useCatalogReturnPath } from '../../app/catalogReturn'
 import { ErrorState } from '../../components/ErrorState'
 import { TypeBadges } from '../../components/TypeBadges'
 import { formatDexNumber, formatHeight, formatPokemonName, formatWeight } from '../../lib/format'
+import { useDocumentTitle } from '../../lib/useDocumentTitle'
 import { EvolutionChain } from './EvolutionChain'
+import { isValidIdOrName } from './idOrName'
 import { StatBars } from './StatBars'
 import type { PokemonDetails } from './types'
 import { usePokemonDetails } from './usePokemonDetails'
@@ -12,8 +14,10 @@ const NOT_FOUND = 404
 
 export function PokemonDetailsPage() {
   const { idOrName = '' } = useParams()
-  const { data, error, isPending, refetch } = usePokemonDetails(idOrName)
+  const isWellFormed = isValidIdOrName(idOrName)
+  const { data, error, isLoading, refetch } = usePokemonDetails(idOrName, { enabled: isWellFormed })
   const catalogPath = useCatalogReturnPath()
+  const isNotFound = !isWellFormed || error?.status === NOT_FOUND
 
   return (
     <div className="space-y-4">
@@ -21,31 +25,38 @@ export function PokemonDetailsPage() {
         <span aria-hidden="true">←</span> Back to catalog
       </Link>
 
-      {isPending && (
+      {isLoading && (
         <div role="status" className="h-96 animate-pulse rounded-xl border border-slate-200 bg-white">
           <span className="sr-only">Loading Pokémon…</span>
         </div>
       )}
 
-      {error?.status === NOT_FOUND && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 text-center">
-          <h1 className="text-lg font-semibold">Pokémon not found</h1>
-          {error.detail && <p className="mt-1 text-sm text-slate-500">{error.detail}</p>}
-          <Link to="/" className="mt-4 inline-block text-sm font-medium text-red-600 hover:underline">
-            Back to the catalog
-          </Link>
-        </div>
-      )}
+      {isNotFound && <PokemonNotFound detail={error?.detail} />}
 
-      {error && error.status !== NOT_FOUND && <ErrorState error={error} onRetry={() => void refetch()} />}
+      {error && !isNotFound && <ErrorState error={error} onRetry={() => void refetch()} />}
 
       {data && <Details pokemon={data} />}
     </div>
   )
 }
 
+function PokemonNotFound({ detail }: { detail?: string }) {
+  useDocumentTitle('Pokémon not found')
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-6 text-center">
+      <h1 className="text-lg font-semibold">Pokémon not found</h1>
+      <p className="mt-1 text-sm text-slate-500">{detail ?? 'There is no Pokémon with that number or name.'}</p>
+      <Link to="/" className="mt-4 inline-block text-sm font-medium text-red-600 hover:underline">
+        Back to the catalog
+      </Link>
+    </div>
+  )
+}
+
 function Details({ pokemon }: { pokemon: PokemonDetails }) {
   const name = formatPokemonName(pokemon.name)
+  useDocumentTitle(name)
 
   return (
     <article aria-labelledby="pokemon-heading" className="grid gap-4 lg:grid-cols-[20rem_1fr]">
@@ -108,7 +119,7 @@ function Details({ pokemon }: { pokemon: PokemonDetails }) {
           <StatBars stats={pokemon.stats} />
         </section>
         <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <EvolutionChain chain={pokemon.evolutionChain} currentName={pokemon.name} />
+          <EvolutionChain chain={pokemon.evolutionChain} currentSpecies={pokemon.speciesName} />
         </div>
       </div>
     </article>

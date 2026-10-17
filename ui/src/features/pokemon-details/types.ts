@@ -3,7 +3,10 @@ import type { Ability } from '../catalog/types'
 /** Mirrors the service's PokemonDetailsResponse. */
 export interface PokemonDetails {
   id: number
+  /** PokeAPI name, which can be an alternate form ("raichu-alola"). */
   name: string
+  /** The species, as named in the evolution chain ("raichu"). */
+  speciesName: string
   artworkUrl: string | null
   category: string | null
   description: string | null
