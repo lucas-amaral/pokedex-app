@@ -49,15 +49,16 @@ Open the URL Vite prints (http://localhost:5173 by default). The dev server forw
 | OpenAPI document | http://localhost:8080/v3/api-docs |
 | Health check | http://localhost:8080/actuator/health |
 
-Use "Sign up" in the header to create an account. New accounts have the `USER` role: they can add, edit and refresh
-Pokémon. Removing one needs the `ADMIN` role; until demo credentials ship with the seed data, promote an account by
-hand:
+On first start the API fills the collection with every Pokémon of Generations 1 and 2 (from a PokeAPI snapshot bundled
+with the service, so no network is needed) and creates two demo accounts:
 
-```bash
-docker compose exec db psql -U pokedex -d pokedex -c "update users set role = 'ADMIN' where username = 'your-name'"
-```
+| Username | Password | Role | Can |
+| --- | --- | --- | --- |
+| `oak` | `professor123` | ADMIN | Everything, including removing Pokémon from the collection |
+| `ash` | `pikachu123` | USER | Add, edit and refresh Pokémon |
 
-Log in again afterwards so the new token carries the role.
+These passwords are public: turn seeding off (`POKEDEX_SEED_ENABLED=false`) anywhere but a local or demo setup.
+Anyone can also create a `USER` account with "Sign up".
 
 ## Repository layout
 
@@ -129,6 +130,5 @@ before submission.
 
 ## Roadmap
 
-- Seed data (Generations 1 and 2) and demo credentials
 - Dockerfiles and Docker Compose
 - GenAI exercise: a task-management API generated with an AI tool, with a review of its output

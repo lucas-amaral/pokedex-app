@@ -243,6 +243,8 @@ Settings live in `src/main/resources/application.yml` and can be overridden with
 | `pokedex.pokeapi.base-url` | `https://pokeapi.co/api/v2` | PokeAPI root |
 | `pokedex.pokeapi.connect-timeout` | `2s` | Connection timeout per call |
 | `pokedex.pokeapi.read-timeout` | `5s` | Response timeout per call |
+| `pokedex.seed.enabled` | `true` | Load the demo data at startup (also `POKEDEX_SEED_ENABLED`); see [Demo data](#demo-data) |
+| `pokedex.seed.accounts` | `oak` (ADMIN), `ash` (USER) | Demo accounts created when missing |
 | `spring.cache.caffeine.spec` | `maximumSize=2000,expireAfterWrite=24h,recordStats` | Limits for each PokeAPI cache |
 | `spring.threads.virtual.enabled` | `true` | Virtual threads for requests and background work |
 
@@ -258,11 +260,13 @@ com.lucasamaral.pokedex
 │   ├── catalog       BrowseCatalog, GetPokemonDetails, PokemonCatalog and PokemonDetailsCatalog ports
 │   ├── collection    SyncPokemon, BrowseCollection, Update/RemoveCollectedPokemon, CollectionRepository port
 │   ├── user          Register, Authenticate, GetCurrentUser; UserRepository, PasswordHasher, TokenIssuer ports
+│   ├── seed          DemoDataSeeder: demo accounts, and an empty collection filled through the sync use case
 │   └── pagination    Page, PageQuery
 ├── infrastructure  Adapters and Spring wiring
 │   ├── pokeapi       Declarative client, JSON records, mapper, adapter
 │   ├── persistence   JPA entities, mapper, specifications, collection and user repository adapters
 │   ├── security      Route rules, JWT issuing and checking, BCrypt, 401/403 problem responses
+│   ├── seed          Snapshot catalog, seeding at startup, snapshot exporter
 │   └── config        Use case beans, cache, OpenAPI
 └── web             HTTP delivery
     ├── catalog       Controller and response DTOs
@@ -293,6 +297,30 @@ A collected Pokémon has two owners. A sync refreshes the source data and never 
 data. Every change bumps `version` (optimistic locking): an edit based on an older version gets 409 instead of
 silently overwriting someone else's change. The unique `pokeapi_id` stops two concurrent syncs from storing the
 same Pokémon twice; the losing request refreshes the stored copy instead.
+
+## Demo data
+
+With `pokedex.seed.enabled` (the default), every start runs `DemoDataSeeder`:
+
+- Creates each demo account whose username and email are both free (`oak`/`professor123` as ADMIN,
+  `ash`/`pikachu123` as USER). Existing accounts are never changed.
+- If the collection is empty, adds the 251 Pokémon of Generations 1 and 2, with demo proprietary fields: region
+  (Kanto or Johto), tags (`gen-1` or `gen-2`, plus `starter`, `legendary` or `mythical`) and, for the starters and
+  Pikachu, names in Japanese, French and German. A collection that already has Pokémon is left alone, so Pokémon
+  removed or edited by users do not come back on restart.
+
+The Pokémon go through the same `SyncPokemonService` the API uses, handed a different catalog: `SnapshotPokemonCatalog`
+reads `src/main/resources/seed/pokemon-gen1-2.json` instead of calling PokeAPI (Strategy pattern). Seeding takes a few
+seconds and works offline. The snapshot holds the data the collection copies (no evolution chains; the detail page
+reads those live).
+
+To regenerate the snapshot from live PokeAPI (about a minute; needs the database running, as for `bootRun`):
+
+```bash
+./gradlew bootRun --args='--spring.profiles.active=export-snapshot --pokedex.seed.enabled=false --server.port=8082'
+```
+
+It writes the file and stops the application.
 
 ## PokeAPI integration
 

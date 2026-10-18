@@ -1,0 +1,34 @@
+{
+  "source": "https://pokeapi.co/api/v2",
+  "exportedAt": "2026-10-18T10:00:00Z",
+  "pokemon": [
+    {
+      "id": 1,
+      "name": "bulbasaur",
+      "speciesName": "bulbasaur",
+      "category": "Seed Pokémon",
+      "description": "A strange seed was planted on its back at birth.",
+      "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png",
+      "artworkUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png",
+      "heightDecimeters": 7,
+      "weightHectograms": 69,
+      "types": ["grass", "poison"],
+      "abilities": [{"name": "overgrow", "hidden": false}, {"name": "chlorophyll", "hidden": true}],
+      "stats": [{"name": "hp", "value": 45}, {"name": "attack", "value": 49}]
+    },
+    {
+      "id": 152,
+      "name": "chikorita",
+      "speciesName": "chikorita",
+      "category": "Leaf Pokémon",
+      "description": null,
+      "spriteUrl": null,
+      "artworkUrl": null,
+      "heightDecimeters": 9,
+      "weightHectograms": 64,
+      "types": ["grass"],
+      "abilities": [{"name": "overgrow", "hidden": false}],
+      "stats": [{"name": "hp", "value": 45}]
+    }
+  ]
+}

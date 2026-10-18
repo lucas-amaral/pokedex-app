@@ -54,6 +54,8 @@ dependencies {
 tasks.withType<Test> {
     useJUnitPlatform()
     jvmArgs("-Xshare:off", "-javaagent:${mockitoAgent.asPath}")
+    // Each test sets up its own data; the seeding test turns seeding back on.
+    systemProperty("pokedex.seed.enabled", "false")
     finalizedBy(tasks.jacocoTestReport)
 }
 

@@ -33,6 +33,19 @@ pokedex:
     base-url: https://pokeapi.co/api/v2
     connect-timeout: 2s
     read-timeout: 5s
+  seed:
+    # Demo data for local runs and reviews: Generations 1 and 2 from a bundled PokeAPI snapshot, plus two accounts.
+    # Seeding only fills an empty collection and creates missing accounts. Turn off with POKEDEX_SEED_ENABLED=false.
+    enabled: true
+    accounts:
+      - username: oak
+        email: oak@pallet.town
+        password: professor123
+        role: ADMIN
+      - username: ash
+        email: ash@pallet.town
+        password: pikachu123
+        role: USER
 
 management:
   endpoints:
