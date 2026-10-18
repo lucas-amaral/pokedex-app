@@ -219,6 +219,10 @@ curl 'http://localhost:8080/api/v1/catalog/pokemon/eevee'
 
 ### Errors
 
+JSON is read strictly: a value must already have its field's type. `"3"` is not accepted for a number, `1.7` is not
+truncated to `1`, `123` is not turned into text, and a field sent twice is refused. Text fields refuse control
+characters (notes may contain line breaks and tabs), which PostgreSQL could not store anyway.
+
 Every error is an [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) problem detail with content type
 `application/problem+json`:
 
@@ -234,7 +238,7 @@ Every error is an [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) problem det
 
 | Status | When |
 | --- | --- |
-| 400 | Invalid parameters or body fields (`errors` lists each one, by `parameter` or `field`), fields that cannot be edited, a field with the wrong type (for example `{"field": "version", "message": "must be a number"}`), or a body that is not JSON |
+| 400 | Invalid parameters or body fields (`errors` lists each one, by `parameter` or `field`), fields that cannot be edited, a value of the wrong type (for example `{"field": "version", "message": "must be a whole number"}` or `{"parameter": "id", "message": "must be a UUID"}`), a field sent twice, text with control characters, or a body that is not JSON |
 | 401 | No token, an invalid or expired token, or a failed login ("Authentication required", "Login failed") |
 | 403 | The account's role does not allow the action ("Not allowed") |
 | 404 | No Pokémon with that number or name ("Pokémon not found"), no such id in the collection ("Pokémon not in the collection"), or unknown route |

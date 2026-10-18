@@ -85,6 +85,7 @@ Anyone can also create a `USER` account with "Sign up".
 ```
 pokedex-app/
 ├── docker-compose.yml   Whole stack (db, service, ui), or only the database for development
+├── genai/               GenAI exercise: prompt, task API, validation → see genai/README.md
 ├── service/             Spring Boot API (Java 25, Gradle)   → see service/README.md
 └── ui/                  React front-end (TypeScript, Vite)  → see ui/README.md
 ```
@@ -150,4 +151,4 @@ before submission.
 
 ## Roadmap
 
-- GenAI exercise: a task-management API generated with an AI tool, with a review of its output
+- Write-up of the process (including how AI-generated code was checked) and the presentation

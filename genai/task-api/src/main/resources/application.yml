@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: task-api
+  datasource:
+    url: jdbc:postgresql://localhost:5433/tasks
+    username: tasks
+    password: tasks
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    # db/demo holds the demo users. Outside a demo, read only the schema: SPRING_FLYWAY_LOCATIONS=classpath:db/migration
+    locations: classpath:db/migration,classpath:db/demo
+  web:
+    locale: en
+    locale-resolver: fixed
+
+server:
+  port: 8090
+
+tasks:
+  security:
+    jwt:
+      # Development default only: set TASKS_SECURITY_JWT_SECRET (32+ bytes) anywhere else.
+      secret: dev-only-secret-change-me-before-any-deployment-0123
+      token-ttl: 1h
+      issuer: task-api

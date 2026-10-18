@@ -13,6 +13,7 @@ import com.lucasamaral.pokedex.domain.user.Email;
 import com.lucasamaral.pokedex.domain.user.Role;
 import com.lucasamaral.pokedex.domain.user.User;
 import com.lucasamaral.pokedex.domain.user.Username;
+import com.lucasamaral.pokedex.infrastructure.config.JsonConfig;
 import com.lucasamaral.pokedex.infrastructure.security.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,7 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 
 @WebMvcTest(AuthController.class)
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, JsonConfig.class})
 class AuthControllerTest {
 
     private static final Instant NOW = Instant.parse("2026-10-18T10:00:00Z");

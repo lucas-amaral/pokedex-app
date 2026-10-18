@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.lucasamaral.pokedex.infrastructure.config.JsonConfig;
 import com.lucasamaral.pokedex.infrastructure.security.SecurityConfig;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -25,7 +26,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 @WebMvcTest(CatalogController.class)
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, JsonConfig.class})
 class CatalogControllerDetailsTest {
 
     private static final String URL = "/api/v1/catalog/pokemon/{idOrName}";
