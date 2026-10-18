@@ -12,7 +12,8 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * A collected Pokémon: the source data copied from PokeAPI, then the proprietary fields.
+ * A collected Pokémon: the source data copied from PokeAPI, then the proprietary fields, and the version an edit
+ * must send back.
  */
 public record CollectedPokemonResponse(
         UUID id,
@@ -33,7 +34,8 @@ public record CollectedPokemonResponse(
         String region,
         Map<String, String> localizedNames,
         Set<String> tags,
-        Instant syncedAt) {
+        Instant syncedAt,
+        long version) {
 
     static CollectedPokemonResponse from(CollectedPokemon pokemon) {
         var source = pokemon.source();
@@ -57,6 +59,7 @@ public record CollectedPokemonResponse(
                 custom.region(),
                 custom.localizedNames(),
                 custom.tags(),
-                pokemon.syncedAt());
+                pokemon.syncedAt(),
+                pokemon.version());
     }
 }

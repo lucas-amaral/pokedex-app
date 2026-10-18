@@ -3,6 +3,8 @@ package com.lucasamaral.pokedex.web.error;
 import com.lucasamaral.pokedex.application.catalog.CatalogUnavailableException;
 import com.lucasamaral.pokedex.application.catalog.PokemonNotFoundException;
 import com.lucasamaral.pokedex.application.collection.CollectedPokemonNotFoundException;
+import com.lucasamaral.pokedex.application.collection.CollectedPokemonVersionConflictException;
+import com.lucasamaral.pokedex.domain.collection.InvalidFieldException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -52,6 +54,28 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(CollectedPokemonVersionConflictException.class)
+    ProblemDetail handleVersionConflict(CollectedPokemonVersionConflictException exception) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
+                "Someone else changed this Pokémon after you loaded it. Reload it and apply your changes again.");
+        problem.setTitle("Pokémon changed since you loaded it");
+        problem.setProperty("expectedVersion", exception.expectedVersion());
+        problem.setProperty("currentVersion", exception.currentVersion());
+        return problem;
+    }
+
+    @ExceptionHandler(InvalidFieldException.class)
+    ProblemDetail handleInvalidField(InvalidFieldException exception) {
+        return invalidFields(List.of(fieldError(exception.field(), exception.getMessage().substring(exception.field().length() + 1))));
+    }
+
+    @ExceptionHandler(UnknownFieldsException.class)
+    ProblemDetail handleUnknownFields(UnknownFieldsException exception) {
+        return invalidFields(exception.fields().stream().sorted()
+                .map(field -> fieldError(field, "is not an editable field"))
+                .toList());
+    }
+
     @ExceptionHandler(Exception.class)
     ProblemDetail handleUnexpected(Exception exception) {
         log.error("Unexpected error", exception);
@@ -88,5 +112,16 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         problem.setTitle("Invalid request");
         problem.setProperty("errors", List.copyOf(errors));
         return handleExceptionInternal(exception, problem, headers, status, request);
+    }
+
+    private static ProblemDetail invalidFields(List<Map<String, String>> errors) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "One or more fields are invalid.");
+        problem.setTitle("Invalid request");
+        problem.setProperty("errors", errors);
+        return problem;
+    }
+
+    private static Map<String, String> fieldError(String field, String message) {
+        return Map.of("field", field, "message", message);
     }
 }

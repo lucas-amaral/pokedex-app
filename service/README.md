@@ -55,6 +55,8 @@ All endpoints are under `/api/v1`. Pages are zero-based.
 | POST | `/pokemon/sync` with `{"idOrName": "pikachu"}` | Copy a Pokémon from PokeAPI into the collection (US03): 201 with `Location` when added, 200 when it was already there (source data refreshed, proprietary fields kept) | 201, 200, 400, 404, 503 |
 | GET | `/pokemon?page=0&size=20&name=pika&tag=starter&pokeapiId=25` | The collection in Pokédex order; `name` matches part of the name, nickname or a localized name (`%` and `_` are matched literally), `tag` an exact tag, `pokeapiId` an exact PokeAPI number (used to tell whether a catalog Pokémon is already collected) | 200, 400 |
 | GET | `/pokemon/{id}` | One collected Pokémon by its UUID: source data plus nickname, notes, region, localized names and tags | 200, 400, 404 |
+| PUT | `/pokemon/{id}` with `{"version": 0, "nickname": …, "notes": …, "region": …, "localizedNames": {…}, "tags": […]}` | Replace the proprietary fields (US04); a field left out is cleared. Source fields such as `name` are refused. `version` is the one read; if the Pokémon changed since, the edit is refused | 200, 400, 404, 409 |
+| DELETE | `/pokemon/{id}` | Remove a Pokémon from the collection | 204, 400, 404 |
 | GET | `/catalog/pokemon/{idOrName}` | One Pokémon by Pokédex number (`25`) or name (`pikachu`, case-insensitive): artwork, base stats, description, evolution chain (US02) | 200, 400, 404, 503 |
 
 Example:
@@ -198,8 +200,9 @@ Every error is an [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) problem det
 
 | Status | When |
 | --- | --- |
-| 400 | Invalid parameters or body fields (`errors` lists each one, by `parameter` or `field`), wrong types, or a body that is not JSON |
+| 400 | Invalid parameters or body fields (`errors` lists each one, by `parameter` or `field`), fields that cannot be edited, wrong types, or a body that is not JSON |
 | 404 | No Pokémon with that number or name ("Pokémon not found"), no such id in the collection ("Pokémon not in the collection"), or unknown route |
+| 409 | The Pokémon changed since the version sent with an edit ("Pokémon changed since you loaded it", with `expectedVersion` and `currentVersion`) |
 | 503 | PokeAPI is down, too slow or returned an error |
 | 500 | Unexpected error; details are logged, never returned |
 
@@ -257,7 +260,9 @@ PostgreSQL, with the schema owned by Flyway (`src/main/resources/db/migration`);
 | `pokemon_tag` | Proprietary tags (indexed for filtering) |
 
 A collected Pokémon has two owners. A sync refreshes the source data and never touches the proprietary fields
-(nickname, notes, region, localized names, tags). The unique `pokeapi_id` stops two concurrent syncs from storing the
+(nickname, notes, region, localized names, tags); an edit replaces the proprietary fields and never touches the source
+data. Every change bumps `version` (optimistic locking): an edit based on an older version gets 409 instead of
+silently overwriting someone else's change. The unique `pokeapi_id` stops two concurrent syncs from storing the
 same Pokémon twice; the losing request refreshes the stored copy instead.
 
 ## PokeAPI integration

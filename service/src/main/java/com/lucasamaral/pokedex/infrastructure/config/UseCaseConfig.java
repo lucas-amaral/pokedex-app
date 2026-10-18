@@ -9,6 +9,7 @@ import com.lucasamaral.pokedex.application.catalog.PokemonDetailsCatalog;
 import com.lucasamaral.pokedex.application.collection.BrowseCollectionService;
 import com.lucasamaral.pokedex.application.collection.BrowseCollectionUseCase;
 import com.lucasamaral.pokedex.application.collection.CollectionRepository;
+import com.lucasamaral.pokedex.application.collection.EditCollectionService;
 import com.lucasamaral.pokedex.application.collection.SyncPokemonService;
 import com.lucasamaral.pokedex.application.collection.SyncPokemonUseCase;
 import org.springframework.context.annotation.Bean;
@@ -46,5 +47,10 @@ public class UseCaseConfig {
     @Bean
     BrowseCollectionUseCase browseCollectionUseCase(CollectionRepository collectionRepository) {
         return new BrowseCollectionService(collectionRepository);
+    }
+
+    @Bean
+    EditCollectionService editCollectionService(CollectionRepository collectionRepository) {
+        return new EditCollectionService(collectionRepository);
     }
 }

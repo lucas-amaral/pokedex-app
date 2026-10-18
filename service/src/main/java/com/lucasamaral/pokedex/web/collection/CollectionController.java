@@ -2,8 +2,11 @@ package com.lucasamaral.pokedex.web.collection;
 
 import com.lucasamaral.pokedex.application.collection.BrowseCollectionUseCase;
 import com.lucasamaral.pokedex.application.collection.CollectionFilter;
+import com.lucasamaral.pokedex.application.collection.RemoveCollectedPokemonUseCase;
 import com.lucasamaral.pokedex.application.collection.SyncPokemonUseCase;
+import com.lucasamaral.pokedex.application.collection.UpdateCollectedPokemonUseCase;
 import com.lucasamaral.pokedex.application.pagination.PageQuery;
+import com.lucasamaral.pokedex.web.error.UnknownFieldsException;
 import com.lucasamaral.pokedex.web.pagination.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,12 +21,16 @@ import jakarta.validation.constraints.Size;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -36,10 +43,15 @@ class CollectionController {
 
     private final SyncPokemonUseCase syncPokemon;
     private final BrowseCollectionUseCase browseCollection;
+    private final UpdateCollectedPokemonUseCase updatePokemon;
+    private final RemoveCollectedPokemonUseCase removePokemon;
 
-    CollectionController(SyncPokemonUseCase syncPokemon, BrowseCollectionUseCase browseCollection) {
+    CollectionController(SyncPokemonUseCase syncPokemon, BrowseCollectionUseCase browseCollection,
+                         UpdateCollectedPokemonUseCase updatePokemon, RemoveCollectedPokemonUseCase removePokemon) {
         this.syncPokemon = syncPokemon;
         this.browseCollection = browseCollection;
+        this.updatePokemon = updatePokemon;
+        this.removePokemon = removePokemon;
     }
 
     @PostMapping("/sync")
@@ -96,5 +108,37 @@ class CollectionController {
             mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ProblemDetail.class)))
     CollectedPokemonResponse get(@PathVariable UUID id) {
         return CollectedPokemonResponse.from(browseCollection.get(id));
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Edit the proprietary fields of a collected Pokémon",
+            description = "Replaces nickname, notes, region, localized names and tags (a field left out is cleared). "
+                    + "Data copied from PokeAPI cannot be edited. Send the version you read; if the Pokémon changed "
+                    + "since, the edit is refused with 409.")
+    @ApiResponse(responseCode = "200", description = "Saved; the response carries the new version")
+    @ApiResponse(responseCode = "400", description = "Malformed body, invalid field, or a field that cannot be edited",
+            content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ProblemDetail.class)))
+    @ApiResponse(responseCode = "404", description = "No Pokémon with that id in the collection", content = @Content(
+            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ProblemDetail.class)))
+    @ApiResponse(responseCode = "409", description = "Someone else changed the Pokémon since the given version", content = @Content(
+            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ProblemDetail.class)))
+    CollectedPokemonResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateCollectedPokemonRequest request) {
+        if (!request.unknownFields().isEmpty()) {
+            throw new UnknownFieldsException(request.unknownFields().keySet());
+        }
+        var updated = updatePokemon.update(id, request.version(), request.toCustomFields());
+        return CollectedPokemonResponse.from(updated);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Remove a Pokémon from the collection")
+    @ApiResponse(responseCode = "204", description = "Removed")
+    @ApiResponse(responseCode = "400", description = "The id is not a UUID", content = @Content(
+            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ProblemDetail.class)))
+    @ApiResponse(responseCode = "404", description = "No Pokémon with that id in the collection", content = @Content(
+            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ProblemDetail.class)))
+    void remove(@PathVariable UUID id) {
+        removePokemon.remove(id);
     }
 }

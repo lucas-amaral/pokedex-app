@@ -13,7 +13,7 @@ The project is built story by story, test-first, on a Clean Architecture backend
 | US01 Browse | Page through Pokémon with sprite, category, weight and abilities | Done (API and UI) |
 | US02 Details | See one Pokémon's artwork, base stats, description and evolution chain | Done (API and UI) |
 | US03 Sync | Copy a Pokémon into the local database to add proprietary fields | Done (API and UI) |
-| US04 Edit | Update the proprietary fields of a stored Pokémon, with validation | Planned |
+| US04 Edit | Update the proprietary fields of a stored Pokémon, with validation; remove it | In progress (API done) |
 | Users | Register, log in, public versus protected routes | Planned |
 
 ## Quick start
@@ -117,7 +117,7 @@ before submission.
 
 ## Roadmap
 
-- US04: edit proprietary fields with validation
+- US04: edit and remove screens
 - User registration, login and protected routes (JWT)
 - Seed data (Generations 1 and 2) and demo credentials
 - Dockerfiles and Docker Compose

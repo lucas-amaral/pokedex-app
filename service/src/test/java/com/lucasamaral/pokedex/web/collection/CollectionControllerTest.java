@@ -4,9 +4,12 @@ import com.lucasamaral.pokedex.application.catalog.CatalogUnavailableException;
 import com.lucasamaral.pokedex.application.catalog.PokemonNotFoundException;
 import com.lucasamaral.pokedex.application.collection.BrowseCollectionUseCase;
 import com.lucasamaral.pokedex.application.collection.CollectedPokemonNotFoundException;
+import com.lucasamaral.pokedex.application.collection.CollectedPokemonVersionConflictException;
 import com.lucasamaral.pokedex.application.collection.CollectionFilter;
+import com.lucasamaral.pokedex.application.collection.RemoveCollectedPokemonUseCase;
 import com.lucasamaral.pokedex.application.collection.SyncPokemonUseCase;
 import com.lucasamaral.pokedex.application.collection.SyncResult;
+import com.lucasamaral.pokedex.application.collection.UpdateCollectedPokemonUseCase;
 import com.lucasamaral.pokedex.application.pagination.Page;
 import com.lucasamaral.pokedex.application.pagination.PageQuery;
 import com.lucasamaral.pokedex.domain.collection.CollectedPokemon;
@@ -31,6 +34,9 @@ import java.util.UUID;
 import static com.lucasamaral.pokedex.support.PokemonDetailsBuilder.aPokemonDetails;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -49,6 +55,12 @@ class CollectionControllerTest {
 
     @MockitoBean
     private BrowseCollectionUseCase browseCollection;
+
+    @MockitoBean
+    private UpdateCollectedPokemonUseCase updatePokemon;
+
+    @MockitoBean
+    private RemoveCollectedPokemonUseCase removePokemon;
 
     private final CollectedPokemon bulbasaur = CollectedPokemon.collect(aPokemonDetails().build(), SYNCED)
             .withCustomFields(new CustomFields("Bulby", "Our first starter", "Kanto",
@@ -202,7 +214,8 @@ class CollectionControllerTest {
                   "region": "Kanto",
                   "localizedNames": {"pt-BR": "Bulbassauro"},
                   "tags": ["starter"],
-                  "syncedAt": "2026-10-18T10:00:00Z"
+                  "syncedAt": "2026-10-18T10:00:00Z",
+                  "version": 0
                 }
                 """.formatted(bulbasaur.id()));
     }
@@ -222,5 +235,129 @@ class CollectionControllerTest {
     void rejectsAnIdThatIsNotAUuid() {
         assertThat(mvc.get().uri(COLLECTION + "/not-a-uuid")).hasStatus(HttpStatus.BAD_REQUEST);
         verifyNoInteractions(browseCollection);
+    }
+
+    private static final String EDIT = """
+            {
+              "version": 3,
+              "nickname": " Bulby ",
+              "notes": "Our first starter",
+              "region": "Kanto",
+              "localizedNames": {"pt-BR": "Bulbassauro"},
+              "tags": ["Starter"]
+            }
+            """;
+
+    @Test
+    void replacesTheProprietaryFields() {
+        var edited = new CustomFields("Bulby", "Our first starter", "Kanto", Map.of("pt-BR", "Bulbassauro"), Set.of("starter"));
+        given(updatePokemon.update(bulbasaur.id(), 3, edited)).willReturn(bulbasaur.withCustomFields(edited));
+
+        var response = mvc.put().uri(COLLECTION + "/{id}", bulbasaur.id()).contentType(MediaType.APPLICATION_JSON).content(EDIT)
+                .exchange();
+
+        assertThat(response).hasStatus(HttpStatus.OK);
+        assertThat(response).bodyJson().extractingPath("$.nickname").isEqualTo("Bulby");
+        assertThat(response).bodyJson().extractingPath("$.tags[0]").isEqualTo("starter");
+        verify(updatePokemon).update(bulbasaur.id(), 3, edited);
+    }
+
+    @Test
+    void clearsTheFieldsLeftOut() {
+        given(updatePokemon.update(any(), anyLong(), any())).willReturn(bulbasaur.withCustomFields(CustomFields.empty()));
+
+        var response = mvc.put().uri(COLLECTION + "/{id}", bulbasaur.id())
+                .contentType(MediaType.APPLICATION_JSON).content("{\"version\": 0}");
+
+        assertThat(response).hasStatus(HttpStatus.OK);
+        verify(updatePokemon).update(bulbasaur.id(), 0, CustomFields.empty());
+    }
+
+    @Test
+    void requiresTheVersionTheEditStartedFrom() {
+        var response = mvc.put().uri(COLLECTION + "/{id}", bulbasaur.id())
+                .contentType(MediaType.APPLICATION_JSON).content("{\"nickname\": \"Bulby\"}");
+
+        assertThat(response).hasStatus(HttpStatus.BAD_REQUEST);
+        assertThat(response).bodyJson().extractingPath("$.errors[0].field").isEqualTo("version");
+        verifyNoInteractions(updatePokemon);
+    }
+
+    @Test
+    void rejectsANicknameThatIsTooLong() {
+        var response = mvc.put().uri(COLLECTION + "/{id}", bulbasaur.id())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"version\": 0, \"nickname\": \"%s\"}".formatted("n".repeat(31)));
+
+        assertThat(response).hasStatus(HttpStatus.BAD_REQUEST);
+        assertThat(response).bodyJson().extractingPath("$.errors[0].field").isEqualTo("nickname");
+        verifyNoInteractions(updatePokemon);
+    }
+
+    @Test
+    void rejectsAMalformedTag() {
+        var response = mvc.put().uri(COLLECTION + "/{id}", bulbasaur.id())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"version\": 0, \"tags\": [\"has space\"]}");
+
+        assertThat(response).hasStatus(HttpStatus.BAD_REQUEST).hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
+        assertThat(response).bodyJson().extractingPath("$.errors[0].field").isEqualTo("tags");
+        verifyNoInteractions(updatePokemon);
+    }
+
+    @Test
+    void rejectsAMalformedLanguageTag() {
+        var response = mvc.put().uri(COLLECTION + "/{id}", bulbasaur.id())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"version\": 0, \"localizedNames\": {\"pt_BR\": \"Bulbassauro\"}}");
+
+        assertThat(response).hasStatus(HttpStatus.BAD_REQUEST);
+        assertThat(response).bodyJson().extractingPath("$.errors[0].field").isEqualTo("localizedNames");
+    }
+
+    @Test
+    void refusesToChangeDataThatComesFromPokeApi() {
+        var response = mvc.put().uri(COLLECTION + "/{id}", bulbasaur.id())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"version\": 0, \"name\": \"bulbasaurus\"}");
+
+        assertThat(response).hasStatus(HttpStatus.BAD_REQUEST).hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
+        assertThat(response).bodyJson().extractingPath("$.errors[0].field").isEqualTo("name");
+        assertThat(response).bodyJson().extractingPath("$.errors[0].message").asString().contains("not an editable field");
+        verifyNoInteractions(updatePokemon);
+    }
+
+    @Test
+    void answersConflictWhenSomeoneElseChangedThePokemonFirst() {
+        given(updatePokemon.update(eq(bulbasaur.id()), eq(3L), any()))
+                .willThrow(new CollectedPokemonVersionConflictException(bulbasaur.id(), 3, 4));
+
+        var response = mvc.put().uri(COLLECTION + "/{id}", bulbasaur.id()).contentType(MediaType.APPLICATION_JSON).content(EDIT);
+
+        assertThat(response).hasStatus(HttpStatus.CONFLICT).hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
+        assertThat(response).bodyJson().extractingPath("$.title").isEqualTo("Pokémon changed since you loaded it");
+        assertThat(response).bodyJson().extractingPath("$.currentVersion").isEqualTo(4);
+    }
+
+    @Test
+    void answersNotFoundWhenEditingAPokemonThatIsNotInTheCollection() {
+        given(updatePokemon.update(any(), anyLong(), any())).willThrow(new CollectedPokemonNotFoundException(bulbasaur.id()));
+
+        assertThat(mvc.put().uri(COLLECTION + "/{id}", bulbasaur.id()).contentType(MediaType.APPLICATION_JSON).content(EDIT))
+                .hasStatus(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    void removesAPokemonFromTheCollection() {
+        assertThat(mvc.delete().uri(COLLECTION + "/{id}", bulbasaur.id())).hasStatus(HttpStatus.NO_CONTENT);
+
+        verify(removePokemon).remove(bulbasaur.id());
+    }
+
+    @Test
+    void answersNotFoundWhenRemovingAPokemonThatIsNotInTheCollection() {
+        willThrow(new CollectedPokemonNotFoundException(bulbasaur.id())).given(removePokemon).remove(bulbasaur.id());
+
+        assertThat(mvc.delete().uri(COLLECTION + "/{id}", bulbasaur.id())).hasStatus(HttpStatus.NOT_FOUND);
     }
 }
