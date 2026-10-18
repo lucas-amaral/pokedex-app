@@ -1,3 +1,5 @@
+# Local development: `docker compose up -d db` starts only PostgreSQL (run the API and UI from source).
+# Whole stack: `docker compose up --build`, then open http://localhost:3000.
 services:
   db:
     image: postgres:17-alpine
@@ -6,7 +8,7 @@ services:
       POSTGRES_USER: pokedex
       POSTGRES_PASSWORD: pokedex
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - pokedex-db:/var/lib/postgresql/data
     healthcheck:
@@ -14,6 +16,26 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  service:
+    build: ./service
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/pokedex
+      # Demo value; set POKEDEX_SECURITY_JWT_SECRET (32+ bytes) in the shell or a .env file for anything shared.
+      POKEDEX_SECURITY_JWT_SECRET: ${POKEDEX_SECURITY_JWT_SECRET:-compose-demo-secret-change-me-0123456789abcdef}
+      POKEDEX_SEED_ENABLED: ${POKEDEX_SEED_ENABLED:-true}
+    ports:
+      - "${API_PORT:-8080}:8080"
+
+  ui:
+    build: ./ui
+    depends_on:
+      - service
+    ports:
+      - "${UI_PORT:-3000}:80"
 
 volumes:
   pokedex-db:

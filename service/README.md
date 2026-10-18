@@ -26,6 +26,19 @@ The API listens on port 8080. To use another port:
 - OpenAPI document: http://localhost:8080/v3/api-docs
 - Health: http://localhost:8080/actuator/health
 
+## Docker image
+
+```bash
+docker build -t pokedex-service .
+```
+
+The `Dockerfile` has two stages. The first builds the jar with the Gradle wrapper on a JDK 25 image (tests are not
+run there: they need Docker themselves for Testcontainers) and splits it into Spring Boot's layers. The second copies
+those layers onto a JRE 25 Alpine image, least to most often changed, so a code change only rebuilds the last small
+layer. The process runs as a non-root user, and `-XX:MaxRAMPercentage=75` sizes the heap from the container's memory
+limit. Configure it with the environment variables in [Configuration](#configuration); `../docker-compose.yml` runs
+it with PostgreSQL and the UI.
+
 ## Test
 
 ```bash

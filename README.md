@@ -16,10 +16,30 @@ The project is built story by story, test-first, on a Clean Architecture backend
 | US04 Edit | Update the proprietary fields of a stored Pokémon, with validation; remove it | Done (API and UI) |
 | Users | Register, log in, public versus protected routes | Done (API and UI) |
 
-## Quick start
+## Quick start with Docker
 
-Requirements: **JDK 25**, **Node.js 22.12+** and a **Docker** runtime (Docker Desktop or Rancher Desktop with the
-dockerd engine). Gradle and its Java toolchain are handled by the Gradle wrapper.
+Only a **Docker** runtime is needed (Docker Desktop, or Rancher Desktop with the dockerd engine):
+
+```bash
+docker compose up --build
+```
+
+The first build takes a few minutes. Then open http://localhost:3000 and log in with a demo account (below).
+
+| Container | What | Port |
+| --- | --- | --- |
+| `ui` | nginx serving the React build; forwards `/api` to the service | 3000 |
+| `service` | The Spring Boot API (Swagger UI at http://localhost:8080/swagger-ui/index.html) | 8080 |
+| `db` | PostgreSQL 17, data kept in the `pokedex-db` volume | 5432 |
+
+Ports can be changed with `UI_PORT`, `API_PORT` and `DB_PORT` (for example `UI_PORT=3001 docker compose up`).
+`docker compose down` stops everything; add `-v` to also delete the database. The token secret has a demo default;
+set `POKEDEX_SECURITY_JWT_SECRET` (32+ bytes) in the shell or a `.env` file for anything shared.
+
+## Run from source
+
+Requirements: **JDK 25**, **Node.js 22.12+** and a **Docker** runtime for PostgreSQL. Gradle and its Java toolchain
+are handled by the Gradle wrapper.
 
 Start PostgreSQL (port 5432):
 
@@ -64,7 +84,7 @@ Anyone can also create a `USER` account with "Sign up".
 
 ```
 pokedex-app/
-├── docker-compose.yml   PostgreSQL for local development
+├── docker-compose.yml   Whole stack (db, service, ui), or only the database for development
 ├── service/             Spring Boot API (Java 25, Gradle)   → see service/README.md
 └── ui/                  React front-end (TypeScript, Vite)  → see ui/README.md
 ```
@@ -130,5 +150,4 @@ before submission.
 
 ## Roadmap
 
-- Dockerfiles and Docker Compose
 - GenAI exercise: a task-management API generated with an AI tool, with a review of its output

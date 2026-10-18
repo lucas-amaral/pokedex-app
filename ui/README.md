@@ -23,6 +23,20 @@ service needs no CORS setup. To point it at a service on another port:
 API_PROXY_TARGET=http://localhost:8081 npm run dev
 ```
 
+## Docker image
+
+```bash
+docker build -t pokedex-ui .
+```
+
+Node builds the static files; nginx serves them (`nginx.conf.template`). nginx does in production what the Vite proxy
+does in development:
+
+- forwards `/api/` to the service at `API_UPSTREAM` (default `http://service:8080`, the name in
+  `../docker-compose.yml`), so the browser still talks to a single origin;
+- answers any other unknown path with `index.html`, so addresses like `/collection/<id>` work on reload;
+- caches `/assets/` for a year (file names contain a content hash) and revalidates `index.html` every time.
+
 ## Pages
 
 | Address | Page |
@@ -56,7 +70,7 @@ The service enforces the same rules; hiding the buttons only avoids offering act
   `localStorage` would keep you logged in across tabs and restarts, but keeps the token around longer.
 
 Routing uses React Router. In production the web server must answer every unknown path with `index.html` so these
-addresses work on reload.
+addresses work on reload; the Docker image's nginx does.
 
 ## Scripts
 
