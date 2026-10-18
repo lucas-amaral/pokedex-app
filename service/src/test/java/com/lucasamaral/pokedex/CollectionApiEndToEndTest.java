@@ -31,7 +31,7 @@ import static com.lucasamaral.pokedex.support.Fixtures.read;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * US03 through the whole stack: real HTTP port, controller, use cases, PokeAPI adapter, JPA adapter and a real
+ * US03 and US04 through the whole stack: real HTTP port, controller, use cases, PokeAPI adapter, JPA adapter and a real
  * PostgreSQL (Testcontainers). Only PokeAPI is replaced, by WireMock.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -164,6 +164,90 @@ class CollectionApiEndToEndTest {
                 .exchange()
                 .expectStatus().isNotFound()
                 .expectBody().jsonPath("$.title").isEqualTo("Pokémon not in the collection");
+    }
+
+    @Test
+    void editsTheProprietaryFieldsAndReadsThemBack() {
+        stubBulbasaur(69);
+        var id = syncAndReadId("bulbasaur");
+
+        client.put().uri(COLLECTION + "/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        {"version": 0, "nickname": " Bulby ", "notes": "Our first starter", "region": "Kanto",
+                         "localizedNames": {"pt-BR": "Bulbassauro"}, "tags": ["Starter"]}
+                        """)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody().jsonPath("$.version").isEqualTo(1);
+
+        client.get().uri(COLLECTION + "/" + id)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody().json("""
+                        {"nickname": "Bulby", "notes": "Our first starter", "region": "Kanto",
+                         "localizedNames": {"pt-BR": "Bulbassauro"}, "tags": ["starter"], "version": 1,
+                         "name": "bulbasaur", "weightKg": 6.9}
+                        """);
+        client.get().uri(COLLECTION + "?name=bulbass").exchange()
+                .expectBody().jsonPath("$.totalElements").isEqualTo(1);
+    }
+
+    @Test
+    void refusesAnEditMadeFromAnOutdatedCopyAndKeepsTheFirstOne() {
+        stubBulbasaur(69);
+        var id = syncAndReadId("bulbasaur");
+        edit(id, "{\"version\": 0, \"nickname\": \"Bulby\"}").expectStatus().isOk();
+
+        edit(id, "{\"version\": 0, \"nickname\": \"Seedy\"}")
+                .expectStatus().isEqualTo(409)
+                .expectHeader().contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.expectedVersion").isEqualTo(0)
+                .jsonPath("$.currentVersion").isEqualTo(1);
+
+        client.get().uri(COLLECTION + "/" + id).exchange()
+                .expectBody().jsonPath("$.nickname").isEqualTo("Bulby");
+    }
+
+    @Test
+    void refusesToEditDataThatComesFromPokeApi() {
+        stubBulbasaur(69);
+        var id = syncAndReadId("bulbasaur");
+
+        edit(id, "{\"version\": 0, \"name\": \"bulbasaurus\"}")
+                .expectStatus().isBadRequest()
+                .expectBody().jsonPath("$.errors[0].field").isEqualTo("name");
+
+        client.get().uri(COLLECTION + "/" + id).exchange()
+                .expectBody().jsonPath("$.name").isEqualTo("bulbasaur").jsonPath("$.version").isEqualTo(0);
+    }
+
+    @Test
+    void removesAPokemonAndThenReportsItAsMissing() {
+        stubBulbasaur(69);
+        var id = syncAndReadId("bulbasaur");
+
+        client.delete().uri(COLLECTION + "/" + id).exchange().expectStatus().isNoContent();
+
+        client.get().uri(COLLECTION + "/" + id).exchange().expectStatus().isNotFound();
+        client.delete().uri(COLLECTION + "/" + id).exchange().expectStatus().isNotFound();
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM pokemon", Integer.class)).isZero();
+    }
+
+    @Test
+    void canAddAPokemonAgainAfterRemovingIt() {
+        stubBulbasaur(69);
+        var first = syncAndReadId("bulbasaur");
+        client.delete().uri(COLLECTION + "/" + first).exchange().expectStatus().isNoContent();
+
+        var second = syncAndReadId("bulbasaur");
+
+        assertThat(second).isNotEqualTo(first);
+    }
+
+    private RestTestClient.ResponseSpec edit(UUID id, String body) {
+        return client.put().uri(COLLECTION + "/" + id).contentType(MediaType.APPLICATION_JSON).body(body).exchange();
     }
 
     private UUID syncAndReadId(String idOrName) {
