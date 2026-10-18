@@ -7,6 +7,7 @@ import com.lucasamaral.pokedex.domain.user.Username;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -43,7 +44,8 @@ public class UserAccountService implements RegisterUserUseCase, AuthenticateUser
             throw new EmailTakenException();
         }
         var hash = passwordHasher.hash(registration.password());
-        return users.save(User.register(username, email, hash, clock.instant()));
+        // PostgreSQL keeps microseconds; truncating here makes the response match what a later read returns.
+        return users.save(User.register(username, email, hash, clock.instant().truncatedTo(ChronoUnit.MICROS)));
     }
 
     @Override

@@ -41,6 +41,16 @@ class UserAccountServiceTest {
     }
 
     @Test
+    void recordsTheCreationTimeAtTheDatabasePrecision() {
+        var nanosClock = Clock.fixed(Instant.parse("2026-10-18T10:00:00.123456789Z"), ZoneOffset.UTC);
+        var service = new UserAccountService(users, new PrefixPasswordHasher(), new FakeTokenIssuer(), nanosClock);
+
+        var ash = service.register(new Registration("ash", "ash@pallet.town", "pikachu123"));
+
+        assertThat(ash.createdAt()).isEqualTo(Instant.parse("2026-10-18T10:00:00.123456Z"));
+    }
+
+    @Test
     void refusesAUsernameThatIsTaken() {
         register.register(new Registration("ash", "ash@pallet.town", "pikachu123"));
 

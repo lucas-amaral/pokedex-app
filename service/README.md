@@ -49,14 +49,27 @@ To run tests only: `./gradlew test`.
 
 All endpoints are under `/api/v1`. Pages are zero-based.
 
+### Access
+
+Reads are public. Changing the collection needs a login; removing a Pokémon needs an ADMIN account. Log in, then send
+the token as `Authorization: Bearer <accessToken>` (in Swagger UI, use the **Authorize** button).
+
+| Method | Path | Access | Description | Responses |
+| --- | --- | --- | --- | --- |
+| POST | `/auth/register` with `{"username", "email", "password"}` | Public | Create a regular (USER) account. Username 3 to 30 of `a-z 0-9 . _ -`; password 8 to 72 bytes | 201, 400, 409 |
+| POST | `/auth/login` with `{"username", "password"}` | Public | Get a Bearer token (HS256 JWT, valid 2 h). Wrong username and wrong password answer the same | 200, 400, 401 |
+| GET | `/auth/me` | Logged in | The user behind the token | 200, 401 |
+
+Collection and catalog endpoints:
+
 | Method | Path | Description | Responses |
 | --- | --- | --- | --- |
 | GET | `/catalog/pokemon?page=0&size=20` | One page of the PokeAPI catalog (US01). `size` is 1 to 50 | 200, 400, 503 |
-| POST | `/pokemon/sync` with `{"idOrName": "pikachu"}` | Copy a Pokémon from PokeAPI into the collection (US03): 201 with `Location` when added, 200 when it was already there (source data refreshed, proprietary fields kept) | 201, 200, 400, 404, 503 |
+| POST | `/pokemon/sync` with `{"idOrName": "pikachu"}` (logged in) | Copy a Pokémon from PokeAPI into the collection (US03): 201 with `Location` when added, 200 when it was already there (source data refreshed, proprietary fields kept) | 201, 200, 400, 404, 503 |
 | GET | `/pokemon?page=0&size=20&name=pika&tag=starter&pokeapiId=25` | The collection in Pokédex order; `name` matches part of the name, nickname or a localized name (`%` and `_` are matched literally), `tag` an exact tag, `pokeapiId` an exact PokeAPI number (used to tell whether a catalog Pokémon is already collected) | 200, 400 |
 | GET | `/pokemon/{id}` | One collected Pokémon by its UUID: source data plus nickname, notes, region, localized names and tags | 200, 400, 404 |
-| PUT | `/pokemon/{id}` with `{"version": 0, "nickname": …, "notes": …, "region": …, "localizedNames": {…}, "tags": […]}` | Replace the proprietary fields (US04); a field left out is cleared. Source fields such as `name` are refused. `version` is the one read; if the Pokémon changed since, the edit is refused | 200, 400, 404, 409 |
-| DELETE | `/pokemon/{id}` | Remove a Pokémon from the collection | 204, 400, 404 |
+| PUT | `/pokemon/{id}` (logged in) with `{"version": 0, "nickname": …, "notes": …, "region": …, "localizedNames": {…}, "tags": […]}` | Replace the proprietary fields (US04); a field left out is cleared. Source fields such as `name` are refused. `version` is the one read; if the Pokémon changed since, the edit is refused | 200, 400, 404, 409 |
+| DELETE | `/pokemon/{id}` (ADMIN) | Remove a Pokémon from the collection | 204, 400, 401, 403, 404 |
 | GET | `/catalog/pokemon/{idOrName}` | One Pokémon by Pokédex number (`25`) or name (`pikachu`, case-insensitive): artwork, base stats, description, evolution chain (US02) | 200, 400, 404, 503 |
 
 Example:
@@ -201,8 +214,10 @@ Every error is an [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) problem det
 | Status | When |
 | --- | --- |
 | 400 | Invalid parameters or body fields (`errors` lists each one, by `parameter` or `field`), fields that cannot be edited, a field with the wrong type (for example `{"field": "version", "message": "must be a number"}`), or a body that is not JSON |
+| 401 | No token, an invalid or expired token, or a failed login ("Authentication required", "Login failed") |
+| 403 | The account's role does not allow the action ("Not allowed") |
 | 404 | No Pokémon with that number or name ("Pokémon not found"), no such id in the collection ("Pokémon not in the collection"), or unknown route |
-| 409 | The Pokémon changed since the version sent with an edit ("Pokémon changed since you loaded it", with `expectedVersion` and `currentVersion`) |
+| 409 | Username or email already in use, or the Pokémon changed since the version sent with an edit ("Pokémon changed since you loaded it", with `expectedVersion` and `currentVersion`) |
 | 503 | PokeAPI is down, too slow or returned an error |
 | 500 | Unexpected error; details are logged, never returned |
 
@@ -215,6 +230,8 @@ Settings live in `src/main/resources/application.yml` and can be overridden with
 | --- | --- | --- |
 | `spring.datasource.url` | `jdbc:postgresql://localhost:5432/pokedex` | Database (also `SPRING_DATASOURCE_URL`) |
 | `spring.datasource.username` / `password` | `pokedex` / `pokedex` | Database credentials |
+| `pokedex.security.jwt.secret` | a development-only value | HMAC key for tokens, 32+ bytes. **Set `POKEDEX_SECURITY_JWT_SECRET` outside development** |
+| `pokedex.security.jwt.token-ttl` | `2h` | How long a token is valid |
 | `pokedex.pokeapi.base-url` | `https://pokeapi.co/api/v2` | PokeAPI root |
 | `pokedex.pokeapi.connect-timeout` | `2s` | Connection timeout per call |
 | `pokedex.pokeapi.read-timeout` | `5s` | Response timeout per call |
@@ -237,7 +254,7 @@ com.lucasamaral.pokedex
 ├── infrastructure  Adapters and Spring wiring
 │   ├── pokeapi       Declarative client, JSON records, mapper, adapter
 │   ├── persistence   JPA entities, mapper, specifications, collection and user repository adapters
-│   ├── security      BCrypt password hasher
+│   ├── security      Route rules, JWT issuing and checking, BCrypt, 401/403 problem responses
 │   └── config        Use case beans, cache, OpenAPI
 └── web             HTTP delivery
     ├── catalog       Controller and response DTOs
