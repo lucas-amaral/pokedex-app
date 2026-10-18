@@ -165,7 +165,7 @@ function YourFields({ pokemon }: { pokemon: CollectedPokemon }) {
           Saved.
         </p>
       )}
-      {isEditing ? (
+      {user && isEditing ? (
         <EditFieldsForm
           pokemon={pokemon}
           onSaved={() => {

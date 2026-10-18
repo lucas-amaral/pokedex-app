@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
-import { Link, type Location, useLocation, useNavigate } from 'react-router'
+import { Link, Navigate, type Location, useLocation, useNavigate } from 'react-router'
 import { z } from 'zod'
 import type { ApiError } from '../../api/ApiError'
 import { useDocumentTitle } from '../../lib/useDocumentTitle'
@@ -28,7 +28,7 @@ export function LoginPage() {
   const location = useLocation()
   const state = (location.state ?? {}) as LoginState
   const navigate = useNavigate()
-  const { signIn } = useAuth()
+  const { user, signIn } = useAuth()
   const form = useForm<LoginValues>({ resolver: zodResolver(loginSchema), defaultValues: { username: '', password: '' } })
   const login = useMutation<LoginResponse, ApiError, LoginValues>({
     mutationFn: ({ username, password }) => logIn(username, password),
@@ -38,6 +38,9 @@ export function LoginPage() {
     },
   })
 
+
+  // Already logged in (a bookmark, the back button): there is nothing to do here.
+  if (user) return <Navigate to={state.from ?? '/'} replace />
   return (
     <section aria-labelledby="login-heading" className="mx-auto max-w-sm space-y-4 rounded-xl border border-slate-200 bg-white p-6">
       <h1 id="login-heading" className="text-xl font-semibold">

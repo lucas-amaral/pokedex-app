@@ -46,17 +46,21 @@ function Layout() {
   )
 }
 
+const AUTH_PAGES = new Set(['/login', '/register'])
+
 function Account() {
   const { user, isAdmin, signOut } = useAuth()
   const location = useLocation()
+  // From the login or sign-up page, keep where the visitor was originally heading instead of pointing back here.
+  const returnTo = AUTH_PAGES.has(location.pathname) ? location.state : { from: location }
 
   if (!user) {
     return (
       <div className="ml-auto flex items-center gap-3 text-sm whitespace-nowrap">
-        <Link to="/login" state={{ from: location }} className="font-medium text-slate-700 hover:text-slate-900">
+        <Link to="/login" state={returnTo} className="font-medium text-slate-700 hover:text-slate-900">
           Log in
         </Link>
-        <Link to="/register" state={{ from: location }} className="rounded-md bg-red-600 px-3 py-1.5 font-medium text-white hover:bg-red-700">
+        <Link to="/register" state={returnTo} className="rounded-md bg-red-600 px-3 py-1.5 font-medium text-white hover:bg-red-700">
           Sign up
         </Link>
       </div>

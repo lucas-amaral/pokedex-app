@@ -31,8 +31,8 @@ API_PROXY_TARGET=http://localhost:8081 npm run dev
 | `/pokemon/:idOrName` | One Pokémon: artwork, types, height, weight, abilities, base stats, description, evolution chain, and "Add to collection" (shown only when the Pokémon is not collected yet; otherwise "In your collection" with a link). A malformed address shows "Pokémon not found" without calling the service |
 | `/collection?name=&tag=&page=N` | Your collection: filter by name, nickname or localized name and by tag (click a tag on a row); filters and page live in the address |
 | `/collection/:id` | One collected Pokémon: PokeAPI data, your fields (nickname, notes, region, localized names, tags) with an edit form, "Refresh from PokeAPI", and "Remove from collection" with a confirmation |
-| `/login` | Log in; afterwards returns to the page that sent you here |
-| `/register` | Create an account; logs in right away and returns to the page that sent you here |
+| `/login` | Log in; afterwards returns to the page that sent you here. A logged-in user is sent on to that page |
+| `/register` | Create an account; logs in right away and returns to the page that sent you here. A logged-in user is sent on to that page |
 | anything else | Page not found |
 
 ## Logging in

@@ -154,4 +154,30 @@ describe('authentication', () => {
 
     expect(screen.getByRole('link', { name: 'Log in' })).toBeInTheDocument()
   })
+
+  it('keeps the original destination when switching between login and sign-up in the header', async () => {
+    server.use(
+      http.post('*/api/v1/auth/register', () => HttpResponse.json(ash, { status: 201 })),
+      http.post('*/api/v1/auth/login', () => HttpResponse.json(loginResponse(ash))),
+    )
+    const user = userEvent.setup()
+    const { router } = renderRoute('/collection')
+
+    await user.click(screen.getByRole('link', { name: 'Log in' }))
+    await user.click(screen.getByRole('link', { name: 'Sign up' }))
+    await user.type(screen.getByRole('textbox', { name: 'Username' }), 'ash')
+    await user.type(screen.getByRole('textbox', { name: 'Email' }), 'ash@pallet.town')
+    await user.type(screen.getByLabelText('Password'), 'pikachu123')
+    await user.click(screen.getByRole('button', { name: 'Create account' }))
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/collection'))
+  })
+
+  it.each(['/login', '/register'])('sends a logged-in user away from %s', async (path) => {
+    startLoggedInAs(ash)
+    const { router } = renderRoute(path)
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+    expect(sessionStorage.getItem('pokedex.session')).not.toBeNull()
+  })
 })

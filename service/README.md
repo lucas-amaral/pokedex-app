@@ -60,6 +60,14 @@ the token as `Authorization: Bearer <accessToken>` (in Swagger UI, use the **Aut
 | POST | `/auth/login` with `{"username", "password"}` | Public | Get a Bearer token (HS256 JWT, valid 2 h). Wrong username and wrong password answer the same | 200, 400, 401 |
 | GET | `/auth/me` | Logged in | The user behind the token | 200, 401 |
 
+Known limits of this token design, accepted for the scope of this project:
+
+- A token sent to a public endpoint must still be valid: an expired or tampered token gets 401 even on a read, as
+  RFC 6750 requires. The UI ignores a stored token past its expiry and logs out on a 401.
+- The role is read from the token, so a role change applies at the next login (at most 2 h later). Tokens cannot be
+  revoked before they expire.
+- Login and register have no rate limit; in production a gateway or a limiter such as Bucket4j would add one.
+
 Collection and catalog endpoints:
 
 | Method | Path | Description | Responses |

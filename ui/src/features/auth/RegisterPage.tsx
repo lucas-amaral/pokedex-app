@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
-import { Link, useLocation, useNavigate } from 'react-router'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { z } from 'zod'
 import type { ApiError } from '../../api/ApiError'
 import { useDocumentTitle } from '../../lib/useDocumentTitle'
@@ -34,7 +34,7 @@ export function RegisterPage() {
   const location = useLocation()
   const state = (location.state ?? {}) as LoginState
   const navigate = useNavigate()
-  const { signIn } = useAuth()
+  const { user, signIn } = useAuth()
   const form = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: { username: '', email: '', password: '' },
@@ -59,6 +59,9 @@ export function RegisterPage() {
   const errors = form.formState.errors
   const handled = signUp.error && (FIELD_BY_CONFLICT[signUp.error.title] || signUp.error.errors.length > 0)
 
+
+  // Already logged in (a bookmark, the back button): there is nothing to do here.
+  if (user) return <Navigate to={state.from ?? '/'} replace />
   return (
     <section aria-labelledby="register-heading" className="mx-auto max-w-sm space-y-4 rounded-xl border border-slate-200 bg-white p-6">
       <h1 id="register-heading" className="text-xl font-semibold">

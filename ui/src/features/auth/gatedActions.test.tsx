@@ -90,4 +90,17 @@ describe('actions shown by who is logged in', () => {
     expect(router.state.location.pathname).toBe('/login')
     expect(sessionStorage.getItem('pokedex.session')).toBeNull()
   })
+
+  it('closes an open edit form when the user logs out', async () => {
+    serveBulbasaur()
+    startLoggedInAs(ash)
+    const user = userEvent.setup()
+    renderRoute(`/collection/${collectedBulbasaur.id}`)
+
+    await user.click(await screen.findByRole('button', { name: 'Edit your fields' }))
+    await user.click(screen.getByRole('button', { name: 'Log out' }))
+
+    expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Edit your fields' })).not.toBeInTheDocument()
+  })
 })
