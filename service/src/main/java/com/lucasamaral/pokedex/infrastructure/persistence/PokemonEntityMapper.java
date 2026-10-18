@@ -31,7 +31,7 @@ final class PokemonEntityMapper {
                 entity.abilities.stream().map(ability -> new Ability(ability.name(), ability.hidden())).toList(),
                 entity.stats.stream().map(stat -> new BaseStat(stat.name(), stat.baseValue())).toList());
         var custom = new CustomFields(entity.nickname, entity.notes, entity.region, entity.localizedNames, entity.tags);
-        return new CollectedPokemon(entity.id, source, custom, entity.syncedAt);
+        return new CollectedPokemon(entity.id, source, custom, entity.syncedAt, entity.version == null ? 0 : entity.version);
     }
 
     /** Writes the aggregate into a new or managed entity; collections are replaced in place so JPA tracks them. */

@@ -30,6 +30,26 @@ class CollectedPokemonTest {
     }
 
     @Test
+    void aNewlyCollectedPokemonStartsAtVersionZero() {
+        assertThat(CollectedPokemon.collect(aPokemonDetails().build(), FIRST_SYNC).version()).isZero();
+    }
+
+    @Test
+    void changesKeepTheVersionTheyWereMadeFrom() {
+        var stored = new CollectedPokemon(java.util.UUID.randomUUID(),
+                SourceData.from(aPokemonDetails().build()), CustomFields.empty(), FIRST_SYNC, 3);
+
+        assertThat(stored.withCustomFields(new CustomFields("Bulby", null, null, Map.of(), Set.of())).version()).isEqualTo(3);
+        assertThat(stored.refreshFrom(aPokemonDetails().build(), SECOND_SYNC).version()).isEqualTo(3);
+    }
+
+    @Test
+    void rejectsANegativeVersion() {
+        assertThatIllegalArgumentException().isThrownBy(() -> new CollectedPokemon(java.util.UUID.randomUUID(),
+                SourceData.from(aPokemonDetails().build()), CustomFields.empty(), FIRST_SYNC, -1));
+    }
+
+    @Test
     void eachCollectedPokemonGetsItsOwnId() {
         var first = CollectedPokemon.collect(aPokemonDetails().build(), FIRST_SYNC);
         var second = CollectedPokemon.collect(aPokemonDetails().withId(4).withName("charmander").build(), FIRST_SYNC);

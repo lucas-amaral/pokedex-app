@@ -58,6 +58,12 @@ class JpaCollectionRepository implements CollectionRepository {
     }
 
     @Override
+    @Transactional
+    public boolean deleteById(UUID id) {
+        throw new UnsupportedOperationException("Delete is implemented in US04 step 2, test-first");
+    }
+
+    @Override
     public Page<CollectedPokemon> findPage(CollectionFilter filter, PageQuery query) {
         var pageable = PageRequest.of(query.page(), query.size(), Sort.by("pokeapiId"));
         var page = jpa.findAll(PokemonSpecifications.matching(filter), pageable);

@@ -33,10 +33,19 @@ public final class InMemoryCollectionRepository implements CollectionRepository 
         return pokemon.values().stream().filter(candidate -> candidate.pokeapiId() == pokeapiId).findFirst();
     }
 
+    /** Like the database: a new Pokémon is stored at version 0, every later save bumps the version. */
     @Override
     public CollectedPokemon save(CollectedPokemon collected) {
-        pokemon.put(collected.id(), collected);
-        return collected;
+        var stored = pokemon.get(collected.id());
+        var version = stored == null ? 0 : stored.version() + 1;
+        var saved = new CollectedPokemon(collected.id(), collected.source(), collected.custom(), collected.syncedAt(), version);
+        pokemon.put(saved.id(), saved);
+        return saved;
+    }
+
+    @Override
+    public boolean deleteById(UUID id) {
+        return pokemon.remove(id) != null;
     }
 
     @Override

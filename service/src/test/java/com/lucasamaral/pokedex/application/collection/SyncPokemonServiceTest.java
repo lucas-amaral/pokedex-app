@@ -154,6 +154,11 @@ class SyncPokemonServiceTest {
         }
 
         @Override
+        public boolean deleteById(java.util.UUID id) {
+            return delegate.deleteById(id);
+        }
+
+        @Override
         public com.lucasamaral.pokedex.application.pagination.Page<CollectedPokemon> findPage(
                 CollectionFilter filter, com.lucasamaral.pokedex.application.pagination.PageQuery query) {
             return delegate.findPage(filter, query);

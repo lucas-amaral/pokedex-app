@@ -73,7 +73,9 @@ class JpaCollectionRepositoryTest {
         repository.save(refreshed);
         flushAndClear();
 
-        assertThat(repository.findById(stored.id())).contains(refreshed);
+        var found = repository.findById(stored.id()).orElseThrow();
+        assertThat(found).usingRecursiveComparison().ignoringFields("version").isEqualTo(refreshed);
+        assertThat(found.version()).isEqualTo(stored.version() + 1);
         assertThat(repository.findPage(CollectionFilter.none(), PageQuery.first(20)).totalElements()).isEqualTo(1);
     }
 

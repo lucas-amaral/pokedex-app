@@ -19,6 +19,9 @@ public interface CollectionRepository {
     /** Inserts a new Pokémon or replaces the stored one with the same id. */
     CollectedPokemon save(CollectedPokemon pokemon);
 
+    /** @return whether a Pokémon with that id was there to delete */
+    boolean deleteById(UUID id);
+
     /** The matching Pokémon in Pokédex order. */
     Page<CollectedPokemon> findPage(CollectionFilter filter, PageQuery query);
 }
