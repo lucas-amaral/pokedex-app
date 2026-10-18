@@ -110,7 +110,7 @@ Shared pieces move to `components/`, `api/` or `lib/` only when a second feature
 | Kind of state | Where it lives | Why |
 | --- | --- | --- |
 | Data from the API | TanStack Query queries | Caching per query, loading and error states, retries, previous page kept while the next one loads |
-| Changes sent to the API (sync) | TanStack Query mutations | After a sync the stored Pokémon goes straight into the cache and every collection list refetches, using shared query keys |
+| Changes sent to the API (add, edit, refresh, remove) | TanStack Query mutations | The saved Pokémon goes straight into the cache and every collection list refetches, using shared query keys |
 | Collection filters and page | The address (`?name=&tag=&page=`) | Same reasons as the catalog page |
 | Edit, login and sign-up forms | React Hook Form, validated by Zod schemas | Fields, errors and submit without hand-written state; the schemas mirror the service's rules |
 | Logged-in user | React context (`AuthProvider`, `useAuth`) backed by `sessionStorage` | Read by the header and by every gated button; the HTTP helper gets the token directly |
@@ -133,6 +133,8 @@ sends the `version` it was loaded with; if someone else saved in between, the se
 "Load the latest version" instead of overwriting their change.
 
 ## Testing
+
+98 tests in 13 files; run them with `npm test`.
 
 - **Vitest** runs the tests in a simulated browser (jsdom).
 - **Testing Library** queries the page the way a user would: by role, label and visible text.

@@ -1,7 +1,7 @@
 # pokedex-service
 
-Spring Boot REST API for the Pokédex App. It serves the PokeAPI catalog, and (in upcoming stories) a local collection
-and user management.
+Spring Boot REST API for the Pokédex App: the PokeAPI catalog (US01, US02), a local collection of Pokémon with
+proprietary fields (US03, US04), and user accounts with JWT authentication.
 
 ## Requirements
 
@@ -48,14 +48,18 @@ it with PostgreSQL and the UI.
 `build` compiles, runs every test and writes the coverage report to `build/reports/jacoco/test/html/index.html`.
 To run tests only: `./gradlew test`.
 
+308 tests; JaCoCo reports 96% of lines covered, and 97 to 100% in `domain` and `application`.
+
 | Kind | Tooling | Example |
 | --- | --- | --- |
-| Domain and use case unit tests | JUnit 5, AssertJ, hand-written fakes | `BrowseCatalogServiceTest` |
+| Domain and use case unit tests | JUnit 5, AssertJ, hand-written fakes | `BrowseCatalogServiceTest`, `UserAccountServiceTest` |
 | PokeAPI adapter tests | WireMock serving trimmed real PokeAPI responses (`src/test/resources/pokeapi`) | `PokeApiCatalogAdapterTest` |
 | Web layer tests | `@WebMvcTest`, MockMvc, Mockito | `CatalogControllerTest` |
 | Cache tests | Spring Boot test + WireMock request counts | `PokeApiCachingTest` |
 | Repository tests | `@DataJpaTest` on a real PostgreSQL started by Testcontainers, schema from Flyway | `JpaCollectionRepositoryTest` |
-| End-to-end tests | Real HTTP port, only PokeAPI faked | `CatalogApiEndToEndTest` |
+| Security tests | The route matrix (public, logged in, ADMIN), token issuing and checking | `RouteSecurityTest`, `JwtTokenIssuerTest` |
+| End-to-end tests | Real HTTP port and PostgreSQL, only PokeAPI faked; users register and log in through the API | `CatalogApiEndToEndTest`, `CollectionApiEndToEndTest` |
+| Seeding test | Startup seeding into PostgreSQL, then logging in with the demo accounts | `DemoDataSeedingTest` |
 | Architecture rules | ArchUnit | `ArchitectureTest` |
 
 ## API
@@ -284,10 +288,13 @@ com.lucasamaral.pokedex
 │   ├── persistence   JPA entities, mapper, specifications, collection and user repository adapters
 │   ├── security      Route rules, JWT issuing and checking, BCrypt, 401/403 problem responses
 │   ├── seed          Snapshot catalog, seeding at startup, snapshot exporter
-│   └── config        Use case beans, cache, OpenAPI
+│   └── config        Use case beans, cache, strict JSON reading, OpenAPI
 └── web             HTTP delivery
-    ├── catalog       Controller and response DTOs
+    ├── catalog       Catalog controller and response DTOs
+    ├── collection    Collection controller, request and response DTOs
+    ├── auth          Register, log in, current user
     ├── pagination    PageResponse
+    ├── validation    Shared request constraints (PokemonKeyFormat)
     └── error         RFC 9457 exception handler
 ```
 

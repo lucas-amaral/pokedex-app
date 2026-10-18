@@ -1,8 +1,7 @@
 # Pokédex App
 
-A full-stack Pokédex built for a Java technical interview: a Spring Boot REST API that browses
-[PokeAPI](https://pokeapi.co/docs/v2), keeps a local collection of Pokémon with proprietary fields, and a React
-front-end that consumes it.
+A full-stack Pokédex: a Spring Boot REST API that browses [PokeAPI](https://pokeapi.co/docs/v2), keeps a local
+collection of Pokémon with proprietary fields, and a React front-end that consumes it.
 
 The project is built story by story, test-first, on a Clean Architecture backend.
 
@@ -15,6 +14,24 @@ The project is built story by story, test-first, on a Clean Architecture backend
 | US03 Sync | Copy a Pokémon into the local database to add proprietary fields | Done (API and UI) |
 | US04 Edit | Update the proprietary fields of a stored Pokémon, with validation; remove it | Done (API and UI) |
 | Users | Register, log in, public versus protected routes | Done (API and UI) |
+
+## Where each requirement is
+
+| Requirement | Where |
+| --- | --- |
+| REST API integrating PokeAPI | `service`, see [PokeAPI integration](service/README.md#pokeapi-integration) |
+| US01 browse, with caching | `GET /api/v1/catalog/pokemon`; Caffeine cache per PokeAPI resource |
+| US02 details and evolution chain | `GET /api/v1/catalog/pokemon/{idOrName}` |
+| US03 sync to a local database, with proprietary fields | `POST /api/v1/pokemon/sync`; nickname, notes, region, localized names, tags |
+| US04 update with 404, 400 and more defensive logic | `PUT /api/v1/pokemon/{id}`: optimistic locking (409), strict JSON, field-level errors, see [Errors](service/README.md#errors) |
+| Full CRUD, standard verbs, consistent responses | Create = sync, read = `GET`, update = `PUT`, delete = `DELETE` (ADMIN); every error is RFC 9457 |
+| Relational database with a primary entity and users | PostgreSQL with Flyway, see [Database](service/README.md#database) |
+| Register, log in, public versus protected routes | [Access](service/README.md#access) |
+| Business logic independent of API and data access | [Architecture](#architecture), enforced by ArchUnit |
+| Tests, TDD | [Testing](#testing) |
+| Responsive React front-end with CRUD and clean state | [ui/README.md](ui/README.md) |
+| README, demo data and credentials, Dockerfile | This file, [demo accounts](#run-from-source), `service/Dockerfile`, `ui/Dockerfile` |
+| GenAI exercise | [genai/README.md](genai/README.md) |
 
 ## Quick start with Docker
 
@@ -142,13 +159,7 @@ The back-end tests start a throwaway PostgreSQL container with Testcontainers, s
 runs all tests and writes a JaCoCo coverage report to
 `service/build/reports/jacoco/test/html/index.html`.
 
-## How this project is built
-
-The work follows one user story at a time, each split into small steps that are written test-first (a failing test,
-then the code that makes it pass) and reviewed before the next. Decisions and their trade-offs are recorded as the
-work goes; a write-up of the process, including how AI-generated code was checked and corrected, will be added
-before submission.
-
-## Roadmap
-
-- Write-up of the process (including how AI-generated code was checked) and the presentation
+| Part | Tests | Notes |
+| --- | --- | --- |
+| Service | 308 | 96% of lines covered; 97 to 100% in `domain` and `application` |
+| UI | 98 | Every screen tested as a user would use it, against a fake API |
