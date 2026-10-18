@@ -1,6 +1,7 @@
 package com.lucasamaral.pokedex.infrastructure.persistence;
 
 import com.lucasamaral.pokedex.application.collection.CollectionFilter;
+import com.lucasamaral.pokedex.application.collection.CollectedPokemonVersionConflictException;
 import com.lucasamaral.pokedex.application.collection.CollectionRepository;
 import com.lucasamaral.pokedex.application.collection.DuplicateCollectedPokemonException;
 import com.lucasamaral.pokedex.application.pagination.PageQuery;
@@ -77,6 +78,56 @@ class JpaCollectionRepositoryTest {
         assertThat(found).usingRecursiveComparison().ignoringFields("version").isEqualTo(refreshed);
         assertThat(found.version()).isEqualTo(stored.version() + 1);
         assertThat(repository.findPage(CollectionFilter.none(), PageQuery.first(20)).totalElements()).isEqualTo(1);
+    }
+
+    @Test
+    void returnsTheVersionTheDatabaseStored() {
+        var first = repository.save(CollectedPokemon.collect(aPokemonDetails().build(), SYNCED));
+        flushAndClear();
+        var second = repository.save(first.withCustomFields(new CustomFields("Bulby", null, null, Map.of(), Set.of())));
+        flushAndClear();
+
+        assertThat(first.version()).isZero();
+        assertThat(second.version()).isEqualTo(1);
+        assertThat(repository.findById(first.id()).orElseThrow().version()).isEqualTo(1);
+    }
+
+    @Test
+    void refusesToSaveAChangeMadeFromAnOutdatedCopy() {
+        var original = repository.save(CollectedPokemon.collect(aPokemonDetails().build(), SYNCED));
+        flushAndClear();
+        repository.save(original.withCustomFields(new CustomFields("Bulby", null, null, Map.of(), Set.of())));
+        flushAndClear();
+
+        var fromOutdatedCopy = original.withCustomFields(new CustomFields("Seedy", null, null, Map.of(), Set.of()));
+
+        assertThatExceptionOfType(CollectedPokemonVersionConflictException.class)
+                .isThrownBy(() -> repository.save(fromOutdatedCopy))
+                .satisfies(conflict -> {
+                    assertThat(conflict.expectedVersion()).isZero();
+                    assertThat(conflict.currentVersion()).isEqualTo(1);
+                });
+    }
+
+    @Test
+    void deletesAPokemonWithAllItsRows() {
+        var bulbasaur = repository.save(CollectedPokemon.collect(aPokemonDetails().build(), SYNCED)
+                .withCustomFields(new CustomFields(null, null, null, Map.of("pt-BR", "Bulbassauro"), Set.of("starter"))));
+        flushAndClear();
+
+        assertThat(repository.deleteById(bulbasaur.id())).isTrue();
+        flushAndClear();
+
+        assertThat(repository.findById(bulbasaur.id())).isEmpty();
+        for (var table : new String[]{"pokemon_type", "pokemon_ability", "pokemon_stat", "pokemon_localized_name", "pokemon_tag"}) {
+            var rows = entityManager.getEntityManager().createNativeQuery("select count(*) from " + table).getSingleResult();
+            assertThat(((Number) rows).intValue()).as(table).isZero();
+        }
+    }
+
+    @Test
+    void reportsThatThereWasNothingToDelete() {
+        assertThat(repository.deleteById(java.util.UUID.randomUUID())).isFalse();
     }
 
     @Test
