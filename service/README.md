@@ -227,14 +227,17 @@ Settings live in `src/main/resources/application.yml` and can be overridden with
 com.lucasamaral.pokedex
 ├── domain          Entities and value objects with their invariants (plain Java)
 │   ├── pokemon       PokemonSummary, PokemonDetails, Weight, Height, BaseStat, EvolutionNode, ...
-│   └── collection    CollectedPokemon (aggregate), SourceData, CustomFields
+│   ├── collection    CollectedPokemon (aggregate), SourceData, CustomFields
+│   └── user          User, Username, Email, Role
 ├── application     Use cases and ports (plain Java)
 │   ├── catalog       BrowseCatalog, GetPokemonDetails, PokemonCatalog and PokemonDetailsCatalog ports
-│   ├── collection    SyncPokemon, BrowseCollection, CollectionRepository port, CollectionFilter
+│   ├── collection    SyncPokemon, BrowseCollection, Update/RemoveCollectedPokemon, CollectionRepository port
+│   ├── user          Register, Authenticate, GetCurrentUser; UserRepository, PasswordHasher, TokenIssuer ports
 │   └── pagination    Page, PageQuery
 ├── infrastructure  Adapters and Spring wiring
 │   ├── pokeapi       Declarative client, JSON records, mapper, adapter
-│   ├── persistence   JPA entity, mapper, specifications, collection repository adapter
+│   ├── persistence   JPA entities, mapper, specifications, collection and user repository adapters
+│   ├── security      BCrypt password hasher
 │   └── config        Use case beans, cache, OpenAPI
 └── web             HTTP delivery
     ├── catalog       Controller and response DTOs
@@ -258,6 +261,7 @@ PostgreSQL, with the schema owned by Flyway (`src/main/resources/db/migration`);
 | `pokemon_type`, `pokemon_ability`, `pokemon_stat` | Source data lists, in PokeAPI order |
 | `pokemon_localized_name` | Proprietary names by language tag |
 | `pokemon_tag` | Proprietary tags (indexed for filtering) |
+| `users` | User accounts: UUID key, unique `username` and `email`, BCrypt `password_hash`, `role` (USER or ADMIN) |
 
 A collected Pokémon has two owners. A sync refreshes the source data and never touches the proprietary fields
 (nickname, notes, region, localized names, tags); an edit replaces the proprietary fields and never touches the source

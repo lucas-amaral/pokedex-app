@@ -32,6 +32,7 @@ dependencies {
     implementation(libs.spring.boot.starter.webmvc)
     implementation(libs.springdoc.openapi.webmvc.ui)
     implementation(libs.caffeine)
+    implementation(libs.spring.security.crypto)
     implementation(libs.flyway.database.postgresql)
     runtimeOnly(libs.postgresql)
 

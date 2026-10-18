@@ -27,7 +27,11 @@ public class PokeApiConfig {
     }
 
     static PokeApiClient createClient(RestClient.Builder builder, PokeApiProperties properties) {
-        var httpClient = HttpClient.newBuilder().connectTimeout(properties.connectTimeout()).build();
+        // HTTP/1.1: the JDK client otherwise tries an HTTP/2 upgrade on plain http, which made WireMock tests flaky.
+        var httpClient = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
+                .connectTimeout(properties.connectTimeout())
+                .build();
         var requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(properties.readTimeout());
 
