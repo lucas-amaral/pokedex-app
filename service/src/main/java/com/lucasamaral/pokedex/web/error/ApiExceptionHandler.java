@@ -4,7 +4,7 @@ import com.lucasamaral.pokedex.application.catalog.CatalogUnavailableException;
 import com.lucasamaral.pokedex.application.catalog.PokemonNotFoundException;
 import com.lucasamaral.pokedex.application.collection.CollectedPokemonNotFoundException;
 import com.lucasamaral.pokedex.application.collection.CollectedPokemonVersionConflictException;
-import com.lucasamaral.pokedex.domain.collection.InvalidFieldException;
+import com.lucasamaral.pokedex.domain.InvalidFieldException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;

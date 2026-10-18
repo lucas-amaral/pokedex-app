@@ -1,5 +1,7 @@
 package com.lucasamaral.pokedex.domain.collection;
 
+import com.lucasamaral.pokedex.domain.InvalidFieldException;
+
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;

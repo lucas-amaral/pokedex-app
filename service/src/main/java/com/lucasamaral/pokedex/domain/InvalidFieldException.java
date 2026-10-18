@@ -1,7 +1,7 @@
-package com.lucasamaral.pokedex.domain.collection;
+package com.lucasamaral.pokedex.domain;
 
 /**
- * A proprietary field breaks one of its rules. Carries the field name so the API can say which one.
+ * A field breaks one of its rules (a proprietary field of a Pokémon, a username, a password). Carries the field name so the API can say which one.
  */
 public class InvalidFieldException extends IllegalArgumentException {
 
