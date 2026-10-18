@@ -75,6 +75,15 @@ class CustomFieldsTest {
     }
 
     @Test
+    void rejectsTooManyLanguages() {
+        var names = new LinkedHashMap<String, String>();
+        for (var language : new String[]{"de", "en", "es", "fr", "it", "ja", "ko", "nl", "pt", "ru", "zh"}) {
+            names.put(language, "Bulbasaur");
+        }
+        assertInvalid("localizedNames", () -> new CustomFields(null, null, null, names, Set.of()));
+    }
+
+    @Test
     void rejectsTooManyTags() {
         var tags = new java.util.HashSet<String>();
         for (int i = 0; i <= CustomFields.MAX_TAGS; i++) {

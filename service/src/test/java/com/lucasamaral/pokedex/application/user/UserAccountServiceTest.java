@@ -109,6 +109,11 @@ class UserAccountServiceTest {
     }
 
     @Test
+    void keepsTheRegistrationPasswordOutOfLogs() {
+        assertThat(new Registration("ash", "ash@pallet.town", "pikachu123").toString()).doesNotContain("pikachu123");
+    }
+
+    @Test
     void reportsACurrentUserThatNoLongerExists() {
         assertThatExceptionOfType(InvalidCredentialsException.class)
                 .isThrownBy(() -> currentUser.currentUser(UUID.randomUUID()));

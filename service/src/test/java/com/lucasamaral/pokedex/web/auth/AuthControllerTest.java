@@ -7,6 +7,7 @@ import com.lucasamaral.pokedex.application.user.GetCurrentUserUseCase;
 import com.lucasamaral.pokedex.application.user.InvalidCredentialsException;
 import com.lucasamaral.pokedex.application.user.RegisterUserUseCase;
 import com.lucasamaral.pokedex.application.user.Registration;
+import com.lucasamaral.pokedex.application.user.EmailTakenException;
 import com.lucasamaral.pokedex.application.user.UsernameTakenException;
 import com.lucasamaral.pokedex.domain.InvalidFieldException;
 import com.lucasamaral.pokedex.domain.user.Email;
@@ -96,6 +97,23 @@ class AuthControllerTest {
 
         assertThat(response).hasStatus(HttpStatus.CONFLICT).hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
         assertThat(response).bodyJson().extractingPath("$.title").isEqualTo("Username taken");
+    }
+
+    @Test
+    void answersConflictForAnEmailThatIsTaken() {
+        given(register.register(any())).willThrow(new EmailTakenException());
+
+        var response = mvc.post().uri("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"username\": \"misty\", \"email\": \"ash@pallet.town\", \"password\": \"pikachu123\"}");
+
+        assertThat(response).hasStatus(HttpStatus.CONFLICT).hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
+        assertThat(response).bodyJson().extractingPath("$.title").isEqualTo("Email taken");
+    }
+
+    @Test
+    void keepsPasswordsOutOfLogs() {
+        assertThat(new LoginRequest("ash", "pikachu123").toString()).contains("ash").doesNotContain("pikachu123");
+        assertThat(new RegisterRequest("ash", "ash@pallet.town", "pikachu123").toString()).doesNotContain("pikachu123");
     }
 
     @Test

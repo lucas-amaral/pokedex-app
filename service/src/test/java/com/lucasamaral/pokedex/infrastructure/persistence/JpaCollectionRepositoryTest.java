@@ -93,6 +93,24 @@ class JpaCollectionRepositoryTest {
     }
 
     @Test
+    void refusesAChangeWhenAnotherTransactionWroteBetweenTheCheckAndTheWrite() {
+        var original = repository.save(CollectedPokemon.collect(aPokemonDetails().build(), SYNCED));
+        flushAndClear();
+        // This transaction loads the row at version 0; another one then stores version 1 behind its back.
+        jpa.findById(original.id());
+        entityManager.getEntityManager()
+                .createNativeQuery("UPDATE pokemon SET version = version + 1 WHERE id = :id")
+                .setParameter("id", original.id())
+                .executeUpdate();
+
+        var change = original.withCustomFields(new CustomFields("Bulby", null, null, Map.of(), Set.of()));
+
+        assertThatExceptionOfType(CollectedPokemonVersionConflictException.class)
+                .isThrownBy(() -> repository.save(change))
+                .satisfies(conflict -> assertThat(conflict.expectedVersion()).isZero());
+    }
+
+    @Test
     void refusesToSaveAChangeMadeFromAnOutdatedCopy() {
         var original = repository.save(CollectedPokemon.collect(aPokemonDetails().build(), SYNCED));
         flushAndClear();
