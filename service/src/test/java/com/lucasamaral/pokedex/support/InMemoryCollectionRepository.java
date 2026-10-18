@@ -46,8 +46,11 @@ public final class InMemoryCollectionRepository implements CollectionRepository 
                 .filter(candidate -> filter.name() == null
                         || candidate.source().name().contains(filter.name())
                         || (candidate.custom().nickname() != null
-                            && candidate.custom().nickname().toLowerCase(Locale.ROOT).contains(filter.name())))
+                            && candidate.custom().nickname().toLowerCase(Locale.ROOT).contains(filter.name()))
+                        || candidate.custom().localizedNames().values().stream()
+                            .anyMatch(localized -> localized.toLowerCase(Locale.ROOT).contains(filter.name())))
                 .filter(candidate -> filter.tag() == null || candidate.custom().tags().contains(filter.tag()))
+                .filter(candidate -> filter.pokeapiId() == null || candidate.pokeapiId() == filter.pokeapiId())
                 .sorted(Comparator.comparingInt(CollectedPokemon::pokeapiId))
                 .toList();
         var content = matching.stream().skip(query.offset()).limit(query.size()).toList();

@@ -14,12 +14,14 @@ export interface CollectionPageRequest {
   size: number
   name?: string
   tag?: string
+  /** Exact PokeAPI number: tells whether a catalog Pokémon is already in the collection. */
+  pokeapiId?: number
 }
 
-export function fetchCollectionPage({ page, size, name, tag }: CollectionPageRequest, signal?: AbortSignal) {
+export function fetchCollectionPage({ page, size, name, tag, pokeapiId }: CollectionPageRequest, signal?: AbortSignal) {
   return getJson<Page<CollectedPokemonSummary>>(
     '/api/v1/pokemon',
-    { page, size, name: name || undefined, tag: tag || undefined },
+    { page, size, name: name || undefined, tag: tag || undefined, pokeapiId },
     signal,
   )
 }

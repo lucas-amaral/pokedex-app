@@ -155,6 +155,21 @@ class CollectionControllerTest {
     }
 
     @Test
+    void passesThePokeApiNumberFilterToTheUseCase() {
+        given(browseCollection.list(any(), any())).willReturn(new Page<>(List.of(), PageQuery.first(1), 0));
+
+        assertThat(mvc.get().uri(COLLECTION + "?size=1&pokeapiId=25")).hasStatus(HttpStatus.OK);
+
+        verify(browseCollection).list(new CollectionFilter(null, null, 25), new PageQuery(0, 1));
+    }
+
+    @Test
+    void rejectsANonPositivePokeApiNumber() {
+        assertThat(mvc.get().uri(COLLECTION + "?pokeapiId=0")).hasStatus(HttpStatus.BAD_REQUEST);
+        verifyNoInteractions(browseCollection);
+    }
+
+    @Test
     void rejectsAPageSizeAboveTheLimit() {
         assertThat(mvc.get().uri(COLLECTION + "?size=51")).hasStatus(HttpStatus.BAD_REQUEST);
         verifyNoInteractions(browseCollection);

@@ -53,7 +53,7 @@ All endpoints are under `/api/v1`. Pages are zero-based.
 | --- | --- | --- | --- |
 | GET | `/catalog/pokemon?page=0&size=20` | One page of the PokeAPI catalog (US01). `size` is 1 to 50 | 200, 400, 503 |
 | POST | `/pokemon/sync` with `{"idOrName": "pikachu"}` | Copy a Pokémon from PokeAPI into the collection (US03): 201 with `Location` when added, 200 when it was already there (source data refreshed, proprietary fields kept) | 201, 200, 400, 404, 503 |
-| GET | `/pokemon?page=0&size=20&name=pika&tag=starter` | The collection in Pokédex order; `name` matches part of the name or nickname, `tag` an exact tag | 200, 400 |
+| GET | `/pokemon?page=0&size=20&name=pika&tag=starter&pokeapiId=25` | The collection in Pokédex order; `name` matches part of the name, nickname or a localized name (`%` and `_` are matched literally), `tag` an exact tag, `pokeapiId` an exact PokeAPI number (used to tell whether a catalog Pokémon is already collected) | 200, 400 |
 | GET | `/pokemon/{id}` | One collected Pokémon by its UUID: source data plus nickname, notes, region, localized names and tags | 200, 400, 404 |
 | GET | `/catalog/pokemon/{idOrName}` | One Pokémon by Pokédex number (`25`) or name (`pikachu`, case-insensitive): artwork, base stats, description, evolution chain (US02) | 200, 400, 404, 503 |
 

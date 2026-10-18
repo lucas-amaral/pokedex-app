@@ -118,6 +118,41 @@ class JpaCollectionRepositoryTest {
     }
 
     @Test
+    void treatsPercentAndUnderscoreAsPlainCharactersInTheNameFilter() {
+        saveAll("bulbasaur", 1, null, Set.of());
+        saveAll("mr-mime", 122, null, Set.of());
+
+        assertThat(repository.findPage(new CollectionFilter("%", null), PageQuery.first(20)).content()).isEmpty();
+        assertThat(repository.findPage(new CollectionFilter("_", null), PageQuery.first(20)).content()).isEmpty();
+        assertThat(repository.findPage(new CollectionFilter("mr-", null), PageQuery.first(20)).content())
+                .extracting(CollectedPokemon::pokeapiId).containsExactly(122);
+    }
+
+    @Test
+    void findsAPokemonByAnyOfItsLocalizedNames() {
+        repository.save(CollectedPokemon.collect(aPokemonDetails().build(), SYNCED)
+                .withCustomFields(new CustomFields(null, null, null, Map.of("pt-BR", "Bulbassauro", "ja", "フシギダネ"), Set.of())));
+        saveAll("charmander", 4, null, Set.of());
+        flushAndClear();
+
+        assertThat(repository.findPage(new CollectionFilter("bulbass", null), PageQuery.first(20)).content())
+                .extracting(CollectedPokemon::pokeapiId).containsExactly(1);
+        assertThat(repository.findPage(new CollectionFilter("フシギ", null), PageQuery.first(20)).content())
+                .extracting(CollectedPokemon::pokeapiId).containsExactly(1);
+    }
+
+    @Test
+    void findsAPokemonByItsPokeApiNumberFilter() {
+        saveAll("bulbasaur", 1, null, Set.of());
+        saveAll("charmander", 4, null, Set.of());
+
+        var page = repository.findPage(new CollectionFilter(null, null, 4), PageQuery.first(1));
+
+        assertThat(page.content()).extracting(CollectedPokemon::pokeapiId).containsExactly(4);
+        assertThat(page.totalElements()).isEqualTo(1);
+    }
+
+    @Test
     void filtersByTag() {
         saveAll("bulbasaur", 1, null, Set.of("starter", "kanto"));
         saveAll("pidgey", 16, null, Set.of("kanto"));

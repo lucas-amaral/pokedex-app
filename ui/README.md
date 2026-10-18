@@ -28,8 +28,8 @@ API_PROXY_TARGET=http://localhost:8081 npm run dev
 | Address | Page |
 | --- | --- |
 | `/` and `/?page=N` | Catalog, page N (counted from 1, so the address can be shared or bookmarked) |
-| `/pokemon/:idOrName` | One Pokémon: artwork, types, height, weight, abilities, base stats, description, evolution chain, and "Add to collection". A malformed address shows "Pokémon not found" without calling the service |
-| `/collection?name=&tag=&page=N` | Your collection: filter by name or nickname and by tag (click a tag on a row); filters and page live in the address |
+| `/pokemon/:idOrName` | One Pokémon: artwork, types, height, weight, abilities, base stats, description, evolution chain, and "Add to collection" (shown only when the Pokémon is not collected yet; otherwise "In your collection" with a link). A malformed address shows "Pokémon not found" without calling the service |
+| `/collection?name=&tag=&page=N` | Your collection: filter by name, nickname or localized name and by tag (click a tag on a row); filters and page live in the address |
 | `/collection/:id` | One collected Pokémon: PokeAPI data, your fields (nickname, notes, region, localized names, tags), and a "Refresh from PokeAPI" button |
 | anything else | Page not found |
 

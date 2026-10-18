@@ -1,9 +1,38 @@
 import { Link } from 'react-router'
-import { useSyncPokemon } from './collectionQueries'
+import { useCollectedCopy, useSyncPokemon } from './collectionQueries'
 
-/** Copies a catalog Pokémon into the collection and says whether it was added or only refreshed. */
-export function AddToCollectionButton({ idOrName }: { idOrName: string }) {
+interface AddToCollectionButtonProps {
+  idOrName: string
+  pokeapiId: number
+}
+
+/**
+ * Offers to copy a catalog Pokémon into the collection, but only when it is not there yet;
+ * otherwise links to the collected copy.
+ */
+export function AddToCollectionButton({ idOrName, pokeapiId }: AddToCollectionButtonProps) {
+  const collected = useCollectedCopy(pokeapiId)
   const sync = useSyncPokemon()
+
+  if (sync.isSuccess) {
+    return (
+      <p role="status" className="text-sm text-green-700">
+        Added to your collection. <OpenLink id={sync.data.pokemon.id} />
+      </p>
+    )
+  }
+
+  if (collected.isPending) {
+    return <div aria-hidden="true" className="h-9 animate-pulse rounded-md bg-slate-100" />
+  }
+
+  if (collected.data) {
+    return (
+      <p className="text-sm text-slate-600">
+        <span className="font-medium text-slate-900">In your collection</span> · <OpenLink id={collected.data.id} />
+      </p>
+    )
+  }
 
   return (
     <div className="space-y-2">
@@ -15,14 +44,6 @@ export function AddToCollectionButton({ idOrName }: { idOrName: string }) {
       >
         {sync.isPending ? 'Adding…' : 'Add to collection'}
       </button>
-      {sync.isSuccess && (
-        <p role="status" className="text-sm text-green-700">
-          {sync.data.created ? 'Added to your collection.' : 'Already in your collection; PokeAPI data refreshed.'}{' '}
-          <Link to={`/collection/${sync.data.pokemon.id}`} className="font-medium underline">
-            Open in your collection
-          </Link>
-        </p>
-      )}
       {sync.isError && (
         <p role="alert" className="text-sm text-red-700">
           <span className="font-medium">{sync.error.title}</span>
@@ -30,5 +51,13 @@ export function AddToCollectionButton({ idOrName }: { idOrName: string }) {
         </p>
       )}
     </div>
+  )
+}
+
+function OpenLink({ id }: { id: string }) {
+  return (
+    <Link to={`/collection/${id}`} className="font-medium text-red-600 underline">
+      Open in your collection
+    </Link>
   )
 }

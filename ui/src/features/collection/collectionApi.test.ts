@@ -51,4 +51,18 @@ describe('fetchCollectionPage', () => {
 
     expect(Object.fromEntries(requested!.searchParams)).toEqual({ page: '1', size: '20', name: 'bulb' })
   })
+
+  it('can look a Pokémon up by its PokeAPI number', async () => {
+    let requested: URL | undefined
+    server.use(
+      http.get('*/api/v1/pokemon', ({ request }) => {
+        requested = new URL(request.url)
+        return HttpResponse.json(collectionPage([collectedBulbasaur]))
+      }),
+    )
+
+    await fetchCollectionPage({ page: 0, size: 1, pokeapiId: 1 })
+
+    expect(requested?.searchParams.get('pokeapiId')).toBe('1')
+  })
 })

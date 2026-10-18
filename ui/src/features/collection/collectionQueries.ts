@@ -20,6 +20,18 @@ export function useCollectionPage(request: CollectionPageRequest) {
   })
 }
 
+/**
+ * The collected copy of a catalog Pokémon, or null when it is not in the collection. It shares the list key prefix,
+ * so a sync refreshes it along with the other lists.
+ */
+export function useCollectedCopy(pokeapiId: number) {
+  return useQuery<Page<CollectedPokemonSummary>, ApiError, CollectedPokemonSummary | null>({
+    queryKey: collectionKeys.list({ page: 0, size: 1, pokeapiId }),
+    queryFn: ({ signal }) => fetchCollectionPage({ page: 0, size: 1, pokeapiId }, signal),
+    select: (page) => page.content[0] ?? null,
+  })
+}
+
 export function useCollectedPokemon(id: string) {
   return useQuery<CollectedPokemon, ApiError>({
     queryKey: collectionKeys.item(id),

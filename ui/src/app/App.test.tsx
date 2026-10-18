@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { bulbasaur, catalogPage } from '../features/catalog/fixtures'
+import { collectionPage } from '../features/collection/fixtures'
 import { bulbasaurDetails } from '../features/pokemon-details/fixtures'
 import { renderRoute } from '../test/renderRoute'
 import { server } from '../test/server'
@@ -12,6 +13,7 @@ describe('App', () => {
     server.use(
       http.get('*/api/v1/catalog/pokemon', () => HttpResponse.json(catalogPage([bulbasaur]))),
       http.get('*/api/v1/catalog/pokemon/:idOrName', () => HttpResponse.json(bulbasaurDetails)),
+      http.get('*/api/v1/pokemon', () => HttpResponse.json(collectionPage([]))),
     )
   })
 

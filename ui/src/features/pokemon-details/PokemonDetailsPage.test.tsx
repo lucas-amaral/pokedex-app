@@ -4,12 +4,14 @@ import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 import { renderRoute } from '../../test/renderRoute'
 import { server } from '../../test/server'
+import { collectedBulbasaur, collectionPage } from '../collection/fixtures'
 import { alolanRaichuDetails, bulbasaurDetails, eeveeDetails } from './fixtures'
 
 const DETAILS = '*/api/v1/catalog/pokemon/:idOrName'
 
 function respondWith(...pokemon: (typeof bulbasaurDetails)[]) {
   server.use(
+    http.get('*/api/v1/pokemon', () => HttpResponse.json(collectionPage([]))),
     http.get(DETAILS, ({ params }) => {
       const found = pokemon.find((candidate) => candidate.name === params.idOrName)
       return found
@@ -83,12 +85,30 @@ describe('PokemonDetailsPage', () => {
     expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
   })
 
-  it('adds the Pokémon to the collection and links to it', async () => {
+  it('offers to add a Pokémon that is not in the collection yet', async () => {
+    let lookedUp: URL | undefined
     respondWith(bulbasaurDetails)
     server.use(
-      http.post('*/api/v1/pokemon/sync', () =>
-        HttpResponse.json({ id: 'abc-123', pokeapiId: 1, name: 'bulbasaur' }, { status: 201 }),
-      ),
+      http.get('*/api/v1/pokemon', ({ request }) => {
+        lookedUp = new URL(request.url)
+        return HttpResponse.json(collectionPage([]))
+      }),
+    )
+    renderRoute('/pokemon/bulbasaur')
+
+    expect(await screen.findByRole('button', { name: 'Add to collection' })).toBeInTheDocument()
+    expect(lookedUp?.searchParams.get('pokeapiId')).toBe('1')
+  })
+
+  it('adds the Pokémon, then shows it as collected instead of the button', async () => {
+    respondWith(bulbasaurDetails)
+    let collected = false
+    server.use(
+      http.get('*/api/v1/pokemon', () => HttpResponse.json(collectionPage(collected ? [collectedBulbasaur] : []))),
+      http.post('*/api/v1/pokemon/sync', () => {
+        collected = true
+        return HttpResponse.json(collectedBulbasaur, { status: 201 })
+      }),
     )
     const user = userEvent.setup()
     renderRoute('/pokemon/bulbasaur')
@@ -96,22 +116,40 @@ describe('PokemonDetailsPage', () => {
     await user.click(await screen.findByRole('button', { name: 'Add to collection' }))
 
     expect(await screen.findByRole('status')).toHaveTextContent('Added to your collection')
-    expect(screen.getByRole('link', { name: 'Open in your collection' })).toHaveAttribute('href', '/collection/abc-123')
+    expect(screen.getByRole('link', { name: 'Open in your collection' })).toHaveAttribute(
+      'href',
+      `/collection/${collectedBulbasaur.id}`,
+    )
+    expect(screen.queryByRole('button', { name: 'Add to collection' })).not.toBeInTheDocument()
   })
 
-  it('says when the Pokémon was already in the collection', async () => {
-    respondWith(bulbasaurDetails)
-    server.use(
-      http.post('*/api/v1/pokemon/sync', () =>
-        HttpResponse.json({ id: 'abc-123', pokeapiId: 1, name: 'bulbasaur' }, { status: 200 }),
-      ),
-    )
+  it('starts fresh for the next Pokémon after adding one', async () => {
+    respondWith(bulbasaurDetails, { ...bulbasaurDetails, id: 2, name: 'ivysaur', speciesName: 'ivysaur' })
+    server.use(http.post('*/api/v1/pokemon/sync', () => HttpResponse.json(collectedBulbasaur, { status: 201 })))
     const user = userEvent.setup()
     renderRoute('/pokemon/bulbasaur')
-
     await user.click(await screen.findByRole('button', { name: 'Add to collection' }))
+    await screen.findByRole('status')
 
-    expect(await screen.findByRole('status')).toHaveTextContent('Already in your collection; PokeAPI data refreshed')
+    const chain = screen.getByRole('region', { name: 'Evolution chain' })
+    await user.click(within(chain).getByRole('link', { name: /Ivysaur/ }))
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Ivysaur' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Add to collection' })).toBeInTheDocument()
+    expect(screen.queryByText(/Added to your collection/)).not.toBeInTheDocument()
+  })
+
+  it('does not offer to add a Pokémon that is already collected', async () => {
+    respondWith(bulbasaurDetails)
+    server.use(http.get('*/api/v1/pokemon', () => HttpResponse.json(collectionPage([collectedBulbasaur]))))
+    renderRoute('/pokemon/bulbasaur')
+
+    expect(await screen.findByText('In your collection')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Open in your collection' })).toHaveAttribute(
+      'href',
+      `/collection/${collectedBulbasaur.id}`,
+    )
+    expect(screen.queryByRole('button', { name: 'Add to collection' })).not.toBeInTheDocument()
   })
 
   it('explains when adding to the collection fails', async () => {

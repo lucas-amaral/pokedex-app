@@ -118,7 +118,7 @@ function FilterForm({ name, tag, isFiltered, onApply }: FilterFormProps) {
   return (
     <form role="search" onSubmit={submit} className="flex flex-wrap items-end gap-2">
       <label className="min-w-48 flex-1 text-xs text-slate-500">
-        Name or nickname
+        Name, nickname or localized name
         <input type="search" value={draftName} onChange={(event) => setDraftName(event.target.value)} className={fieldClass} />
       </label>
       <label className="w-40 text-xs text-slate-500">

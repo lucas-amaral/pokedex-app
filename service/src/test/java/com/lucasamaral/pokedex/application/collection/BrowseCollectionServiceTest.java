@@ -48,6 +48,13 @@ class BrowseCollectionServiceTest {
     }
 
     @Test
+    void passesThePokeApiNumberFilterThrough() {
+        collection.list(new CollectionFilter(null, null, 4), PageQuery.first(1));
+
+        assertThat(repository.lastFilter().pokeapiId()).isEqualTo(4);
+    }
+
+    @Test
     void treatsBlankFilterValuesAsNoFilter() {
         assertThat(new CollectionFilter("  ", "")).isEqualTo(CollectionFilter.none());
     }

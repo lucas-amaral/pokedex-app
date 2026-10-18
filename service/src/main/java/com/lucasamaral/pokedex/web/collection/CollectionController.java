@@ -77,11 +77,13 @@ class CollectionController {
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @Parameter(description = "Pokémon per page")
             @RequestParam(defaultValue = "20") @Min(1) @Max(PageQuery.MAX_SIZE) int size,
-            @Parameter(description = "Part of the name or nickname, case-insensitive")
+            @Parameter(description = "Part of the name, nickname or a localized name, case-insensitive")
             @RequestParam(required = false) @Size(max = 50) String name,
             @Parameter(description = "Exact tag")
-            @RequestParam(required = false) @Size(max = 30) String tag) {
-        var pokemon = browseCollection.list(new CollectionFilter(name, tag), new PageQuery(page, size));
+            @RequestParam(required = false) @Size(max = 30) String tag,
+            @Parameter(description = "Exact PokeAPI number, to check whether a Pokémon is already collected")
+            @RequestParam(required = false) @Min(1) Integer pokeapiId) {
+        var pokemon = browseCollection.list(new CollectionFilter(name, tag, pokeapiId), new PageQuery(page, size));
         return PageResponse.from(pokemon, CollectedPokemonSummaryResponse::from);
     }
 

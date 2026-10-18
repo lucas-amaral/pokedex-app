@@ -45,7 +45,7 @@ describe('CollectionPage', () => {
     const { router } = renderRoute('/collection')
     await screen.findByRole('link', { name: /Charmander/ })
 
-    await user.type(screen.getByRole('searchbox', { name: 'Name or nickname' }), 'bulb{Enter}')
+    await user.type(screen.getByRole('searchbox', { name: 'Name, nickname or localized name' }), 'bulb{Enter}')
 
     expect(await screen.findByText('1 Pokémon')).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /Charmander/ })).not.toBeInTheDocument()

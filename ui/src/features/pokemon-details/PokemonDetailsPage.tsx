@@ -77,7 +77,7 @@ function Details({ pokemon }: { pokemon: PokemonDetails }) {
           <p className="text-sm text-slate-500">{pokemon.category ?? 'Unknown category'}</p>
         </div>
         <TypeBadges types={pokemon.types} />
-        <AddToCollectionButton idOrName={pokemon.name} />
+        <AddToCollectionButton key={pokemon.id} idOrName={pokemon.name} pokeapiId={pokemon.id} />
         <dl className="grid grid-cols-2 gap-2 text-sm">
           <div className="rounded-lg bg-slate-50 p-2">
             <dt className="text-xs text-slate-500">Height</dt>
