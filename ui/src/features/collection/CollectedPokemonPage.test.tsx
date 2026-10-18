@@ -4,6 +4,8 @@ import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 import { renderRoute } from '../../test/renderRoute'
 import { server } from '../../test/server'
+import { startLoggedInAs } from '../../test/session'
+import { ash, oak } from '../auth/fixtures'
 import { collectedBulbasaur, collectedCharmander, collectionPage } from './fixtures'
 
 const ONE = '*/api/v1/pokemon/:id'
@@ -33,6 +35,7 @@ describe('CollectedPokemonPage', () => {
   })
 
   it('refreshes the PokeAPI data on request', async () => {
+    startLoggedInAs(ash)
     let synced: unknown
     server.use(
       http.get(ONE, () => HttpResponse.json(collectedBulbasaur)),
@@ -63,6 +66,7 @@ describe('CollectedPokemonPage', () => {
     expect(screen.getByRole('link', { name: 'Back to your collection' })).toHaveAttribute('href', '/collection')
   })
   it('edits the proprietary fields and shows the saved values', async () => {
+    startLoggedInAs(ash)
     let sent: unknown
     server.use(
       http.get(ONE, () => HttpResponse.json(collectedBulbasaur)),
@@ -95,6 +99,7 @@ describe('CollectedPokemonPage', () => {
   })
 
   it('adds and removes localized names', async () => {
+    startLoggedInAs(ash)
     let sent: { localizedNames?: Record<string, string> } = {}
     server.use(
       http.get(ONE, () => HttpResponse.json(collectedCharmander)),
@@ -118,6 +123,7 @@ describe('CollectedPokemonPage', () => {
   })
 
   it('explains invalid input before sending anything', async () => {
+    startLoggedInAs(ash)
     server.use(http.get(ONE, () => HttpResponse.json(collectedBulbasaur)))
     const user = userEvent.setup()
     renderRoute(`/collection/${collectedBulbasaur.id}`)
@@ -133,6 +139,7 @@ describe('CollectedPokemonPage', () => {
   })
 
   it('shows the errors the service finds next to the fields', async () => {
+    startLoggedInAs(ash)
     server.use(
       http.get(ONE, () => HttpResponse.json(collectedBulbasaur)),
       http.put(ONE, () =>
@@ -153,6 +160,7 @@ describe('CollectedPokemonPage', () => {
   })
 
   it('explains a conflict and offers to load the latest version', async () => {
+    startLoggedInAs(ash)
     let reads = 0
     server.use(
       http.get(ONE, () => {
@@ -180,6 +188,7 @@ describe('CollectedPokemonPage', () => {
   })
 
   it('cancels an edit without saving', async () => {
+    startLoggedInAs(ash)
     server.use(http.get(ONE, () => HttpResponse.json(collectedBulbasaur)))
     const user = userEvent.setup()
     renderRoute(`/collection/${collectedBulbasaur.id}`)
@@ -193,6 +202,7 @@ describe('CollectedPokemonPage', () => {
   })
 
   it('removes the Pokémon after confirmation and says so in the collection', async () => {
+    startLoggedInAs(oak)
     let deleted = false
     server.use(
       http.get(ONE, () => HttpResponse.json(collectedBulbasaur)),
@@ -215,6 +225,7 @@ describe('CollectedPokemonPage', () => {
   })
 
   it('keeps the Pokémon when the removal is cancelled', async () => {
+    startLoggedInAs(oak)
     server.use(http.get(ONE, () => HttpResponse.json(collectedBulbasaur)))
     const user = userEvent.setup()
     renderRoute(`/collection/${collectedBulbasaur.id}`)

@@ -31,7 +31,29 @@ API_PROXY_TARGET=http://localhost:8081 npm run dev
 | `/pokemon/:idOrName` | One Pokémon: artwork, types, height, weight, abilities, base stats, description, evolution chain, and "Add to collection" (shown only when the Pokémon is not collected yet; otherwise "In your collection" with a link). A malformed address shows "Pokémon not found" without calling the service |
 | `/collection?name=&tag=&page=N` | Your collection: filter by name, nickname or localized name and by tag (click a tag on a row); filters and page live in the address |
 | `/collection/:id` | One collected Pokémon: PokeAPI data, your fields (nickname, notes, region, localized names, tags) with an edit form, "Refresh from PokeAPI", and "Remove from collection" with a confirmation |
+| `/login` | Log in; afterwards returns to the page that sent you here |
+| `/register` | Create an account; logs in right away and returns to the page that sent you here |
 | anything else | Page not found |
+
+## Logging in
+
+Anyone can browse the catalog and the collection. What each visitor can change:
+
+| Who | Can |
+| --- | --- |
+| Visitor | Browse; sees "Log in to add it to your collection" instead of the button |
+| Logged-in user | Add a Pokémon, edit its fields, refresh it from PokeAPI |
+| Admin (badge in the header) | Everything above, plus remove a Pokémon |
+
+The service enforces the same rules; hiding the buttons only avoids offering actions that would fail.
+
+- The token from `POST /api/v1/auth/login` is kept in `sessionStorage` and sent as `Authorization: Bearer …` on every
+  call. It survives a reload and disappears when the tab closes. A stored token past its expiry is ignored.
+- If the service answers 401 to a call that carried a token (expired or invalid), the app logs out and opens the login
+  page with "Your session expired. Log in again."; after logging in you return to where you were.
+- Why `sessionStorage`: the service issues stateless Bearer tokens, and this keeps the client simple. An `HttpOnly`
+  cookie would hide the token from scripts (safer against XSS) but needs CSRF protection and a cookie-based service;
+  `localStorage` would keep you logged in across tabs and restarts, but keeps the token around longer.
 
 Routing uses React Router. In production the web server must answer every unknown path with `index.html` so these
 addresses work on reload.
@@ -57,12 +79,13 @@ src/
 ├── api/                HTTP helper, shared API types, ApiError
 ├── components/         Reusable UI pieces (Pagination, ErrorState, TypeBadges, StatBars)
 ├── features/
+│   ├── auth/           Login and sign-up pages, AuthProvider and useAuth, session storage, auth API calls
 │   ├── catalog/        Catalog screen: API call, useCatalogPage hook, PokemonCard, CatalogPage
 │   ├── pokemon-details/ Detail screen: API call, usePokemonDetails hook, EvolutionChain
 │   └── collection/     Collection: API calls, query keys and hooks, AddToCollectionButton, list and detail pages,
 │                       EditFieldsForm (+ Zod schema), RemoveFromCollection
 ├── lib/                Formatting helpers and useDocumentTitle (names the browser tab after the page)
-└── test/               Test setup: MSW server, query client wrapper
+└── test/               Test setup: MSW server, query client wrapper, startLoggedInAs
 ```
 
 Code is grouped by feature: everything a screen needs (API call, hook, components, tests) sits in one folder.
@@ -75,7 +98,8 @@ Shared pieces move to `components/`, `api/` or `lib/` only when a second feature
 | Data from the API | TanStack Query queries | Caching per query, loading and error states, retries, previous page kept while the next one loads |
 | Changes sent to the API (sync) | TanStack Query mutations | After a sync the stored Pokémon goes straight into the cache and every collection list refetches, using shared query keys |
 | Collection filters and page | The address (`?name=&tag=&page=`) | Same reasons as the catalog page |
-| Edit form | React Hook Form, validated by a Zod schema | Fields, errors and submit without hand-written state; the schema mirrors the service's rules |
+| Edit, login and sign-up forms | React Hook Form, validated by Zod schemas | Fields, errors and submit without hand-written state; the schemas mirror the service's rules |
+| Logged-in user | React context (`AuthProvider`, `useAuth`) backed by `sessionStorage` | Read by the header and by every gated button; the HTTP helper gets the token directly |
 | Current catalog page | The address (`?page=N`) | Survives reloads, can be shared, works with the browser's back button |
 | Where "Back to catalog" returns | React Router navigation state | Opening a Pokémon from page 7 and going back lands on page 7 again |
 

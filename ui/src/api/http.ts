@@ -3,6 +3,22 @@ import type { ProblemDetail } from './types'
 
 type QueryParams = Record<string, string | number | undefined>
 
+let accessToken: string | null = null
+let unauthorizedListener: (() => void) | null = null
+
+/** The Bearer token sent with every request; set by the auth context on login and cleared on logout. */
+export function setAccessToken(token: string | null) {
+  accessToken = token
+}
+
+/** Called when the service rejects the token we sent (expired or revoked), so the app can ask for a new login. */
+export function onUnauthorized(listener: () => void): () => void {
+  unauthorizedListener = listener
+  return () => {
+    if (unauthorizedListener === listener) unauthorizedListener = null
+  }
+}
+
 export interface JsonResponse<T> {
   status: number
   data: T
@@ -34,14 +50,18 @@ export async function sendWithoutBody(method: 'DELETE', path: string): Promise<v
 }
 
 async function send(url: URL, init: RequestInit): Promise<Response> {
+  const sentToken = accessToken
+  const headers = new Headers(init.headers)
+  if (sentToken) headers.set('Authorization', `Bearer ${sentToken}`)
   let response: Response
   try {
-    response = await fetch(url, init)
+    response = await fetch(url, { ...init, headers })
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') throw error
     throw new ApiError(0, { title: 'Network error', detail: 'Could not reach the server. Check your connection.' })
   }
   if (!response.ok) {
+    if (response.status === 401 && sentToken) unauthorizedListener?.()
     throw new ApiError(response.status, await readProblem(response))
   }
   return response

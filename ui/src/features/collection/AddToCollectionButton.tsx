@@ -1,4 +1,5 @@
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
+import { useAuth } from '../auth/authContext'
 import { useCollectedCopy, useSyncPokemon } from './collectionQueries'
 
 interface AddToCollectionButtonProps {
@@ -13,6 +14,8 @@ interface AddToCollectionButtonProps {
 export function AddToCollectionButton({ idOrName, pokeapiId }: AddToCollectionButtonProps) {
   const collected = useCollectedCopy(pokeapiId)
   const sync = useSyncPokemon()
+  const { user } = useAuth()
+  const location = useLocation()
 
   if (sync.isSuccess) {
     return (
@@ -31,6 +34,14 @@ export function AddToCollectionButton({ idOrName, pokeapiId }: AddToCollectionBu
       <p className="text-sm text-slate-600">
         <span className="font-medium text-slate-900">In your collection</span> · <OpenLink id={collected.data.id} />
       </p>
+    )
+  }
+
+  if (!user) {
+    return (
+      <Link to="/login" state={{ from: location }} className="block text-sm font-medium text-red-600 hover:underline">
+        Log in to add it to your collection
+      </Link>
     )
   }
 

@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router'
 import { ErrorState } from '../../components/ErrorState'
 import { StatBars } from '../../components/StatBars'
 import { TypeBadges } from '../../components/TypeBadges'
+import { useAuth } from '../auth/authContext'
 import { formatDate, formatDexNumber, formatHeight, formatPokemonName, formatWeight } from '../../lib/format'
 import { useDocumentTitle } from '../../lib/useDocumentTitle'
 import { collectionKeys, useCollectedPokemon, useSyncPokemon } from './collectionQueries'
@@ -57,6 +58,7 @@ function Collected({ pokemon }: { pokemon: CollectedPokemon }) {
   const title = pokemon.nickname ?? name
   useDocumentTitle(title)
   const refresh = useSyncPokemon()
+  const { user, isAdmin } = useAuth()
 
   return (
     <article aria-labelledby="collected-heading" className="grid gap-4 lg:grid-cols-[20rem_1fr]">
@@ -83,6 +85,7 @@ function Collected({ pokemon }: { pokemon: CollectedPokemon }) {
           </div>
         </dl>
         <div className="space-y-2">
+          {user && (
           <button
             type="button"
             onClick={() => refresh.mutate(String(pokemon.pokeapiId))}
@@ -91,6 +94,7 @@ function Collected({ pokemon }: { pokemon: CollectedPokemon }) {
           >
             {refresh.isPending ? 'Refreshing…' : 'Refresh from PokeAPI'}
           </button>
+          )}
           {refresh.isSuccess && (
             <p role="status" className="text-sm text-green-700">
               PokeAPI data refreshed.
@@ -105,7 +109,7 @@ function Collected({ pokemon }: { pokemon: CollectedPokemon }) {
           <Link to={`/pokemon/${pokemon.name}`} className="block text-sm font-medium text-red-600 hover:underline">
             View in catalog
           </Link>
-          <RemoveFromCollection id={pokemon.id} title={title} />
+          {isAdmin && <RemoveFromCollection id={pokemon.id} title={title} />}
         </div>
       </div>
 
@@ -127,6 +131,7 @@ function Collected({ pokemon }: { pokemon: CollectedPokemon }) {
 
 /** The proprietary fields: data PokeAPI does not have and a sync never changes. Editable here (US04). */
 function YourFields({ pokemon }: { pokemon: CollectedPokemon }) {
+  const { user } = useAuth()
   const [isEditing, setEditing] = useState(false)
   const [justSaved, setJustSaved] = useState(false)
   const queryClient = useQueryClient()
@@ -149,7 +154,7 @@ function YourFields({ pokemon }: { pokemon: CollectedPokemon }) {
         <h2 id="your-fields-heading" className="font-semibold">
           Your fields
         </h2>
-        {!isEditing && (
+        {user && !isEditing && (
           <button type="button" onClick={startEditing} className="text-sm font-medium text-red-600 hover:underline">
             Edit your fields
           </button>

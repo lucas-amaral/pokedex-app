@@ -14,7 +14,7 @@ The project is built story by story, test-first, on a Clean Architecture backend
 | US02 Details | See one Pokémon's artwork, base stats, description and evolution chain | Done (API and UI) |
 | US03 Sync | Copy a Pokémon into the local database to add proprietary fields | Done (API and UI) |
 | US04 Edit | Update the proprietary fields of a stored Pokémon, with validation; remove it | Done (API and UI) |
-| Users | Register, log in, public versus protected routes | API done; UI planned |
+| Users | Register, log in, public versus protected routes | Done (API and UI) |
 
 ## Quick start
 
@@ -48,6 +48,16 @@ Open the URL Vite prints (http://localhost:5173 by default). The dev server forw
 | API docs (Swagger UI) | http://localhost:8080/swagger-ui/index.html |
 | OpenAPI document | http://localhost:8080/v3/api-docs |
 | Health check | http://localhost:8080/actuator/health |
+
+Use "Sign up" in the header to create an account. New accounts have the `USER` role: they can add, edit and refresh
+Pokémon. Removing one needs the `ADMIN` role; until demo credentials ship with the seed data, promote an account by
+hand:
+
+```bash
+docker compose exec db psql -U pokedex -d pokedex -c "update users set role = 'ADMIN' where username = 'your-name'"
+```
+
+Log in again afterwards so the new token carries the role.
 
 ## Repository layout
 
@@ -119,7 +129,6 @@ before submission.
 
 ## Roadmap
 
-- Login and registration screens; actions shown only to users allowed to use them
 - Seed data (Generations 1 and 2) and demo credentials
 - Dockerfiles and Docker Compose
 - GenAI exercise: a task-management API generated with an AI tool, with a review of its output

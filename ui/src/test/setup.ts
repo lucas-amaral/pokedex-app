@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll } from 'vitest'
+import { setAccessToken } from '../api/http'
 import { server } from './server'
 
 // jsdom does not implement scrolling; React Router's ScrollRestoration calls it on navigation.
@@ -13,6 +14,8 @@ beforeAll(() => {
 afterEach(() => {
   cleanup()
   server.resetHandlers()
+  sessionStorage.clear()
+  setAccessToken(null)
 })
 
 afterAll(() => {

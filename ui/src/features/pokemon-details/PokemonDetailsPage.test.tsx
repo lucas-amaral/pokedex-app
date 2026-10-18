@@ -4,6 +4,8 @@ import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 import { renderRoute } from '../../test/renderRoute'
 import { server } from '../../test/server'
+import { startLoggedInAs } from '../../test/session'
+import { ash } from '../auth/fixtures'
 import { collectedBulbasaur, collectionPage } from '../collection/fixtures'
 import { alolanRaichuDetails, bulbasaurDetails, eeveeDetails } from './fixtures'
 
@@ -86,6 +88,7 @@ describe('PokemonDetailsPage', () => {
   })
 
   it('offers to add a Pokémon that is not in the collection yet', async () => {
+    startLoggedInAs(ash)
     let lookedUp: URL | undefined
     respondWith(bulbasaurDetails)
     server.use(
@@ -101,6 +104,7 @@ describe('PokemonDetailsPage', () => {
   })
 
   it('adds the Pokémon, then shows it as collected instead of the button', async () => {
+    startLoggedInAs(ash)
     respondWith(bulbasaurDetails)
     let collected = false
     server.use(
@@ -124,6 +128,7 @@ describe('PokemonDetailsPage', () => {
   })
 
   it('starts fresh for the next Pokémon after adding one', async () => {
+    startLoggedInAs(ash)
     respondWith(bulbasaurDetails, { ...bulbasaurDetails, id: 2, name: 'ivysaur', speciesName: 'ivysaur' })
     server.use(http.post('*/api/v1/pokemon/sync', () => HttpResponse.json(collectedBulbasaur, { status: 201 })))
     const user = userEvent.setup()
@@ -140,6 +145,7 @@ describe('PokemonDetailsPage', () => {
   })
 
   it('does not offer to add a Pokémon that is already collected', async () => {
+    startLoggedInAs(ash)
     respondWith(bulbasaurDetails)
     server.use(http.get('*/api/v1/pokemon', () => HttpResponse.json(collectionPage([collectedBulbasaur]))))
     renderRoute('/pokemon/bulbasaur')
@@ -153,6 +159,7 @@ describe('PokemonDetailsPage', () => {
   })
 
   it('explains when adding to the collection fails', async () => {
+    startLoggedInAs(ash)
     respondWith(bulbasaurDetails)
     server.use(
       http.post('*/api/v1/pokemon/sync', () =>
