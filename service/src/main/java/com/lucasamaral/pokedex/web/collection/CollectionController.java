@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
@@ -41,6 +42,10 @@ import java.util.UUID;
 @RequestMapping("/api/v1/pokemon")
 @Tag(name = "Collection", description = "Pokémon copied into the local database, with proprietary fields")
 class CollectionController {
+
+    /** Filters end up in SQL parameters, and PostgreSQL rejects a NUL character in text. */
+    private static final String NO_CONTROL_CHARACTERS = "[^\\p{Cntrl}]*";
+    private static final String NO_CONTROL_CHARACTERS_MESSAGE = "must not contain control characters";
 
     private final SyncPokemonUseCase syncPokemon;
     private final BrowseCollectionUseCase browseCollection;
@@ -94,9 +99,9 @@ class CollectionController {
             @Parameter(description = "Pokémon per page")
             @RequestParam(defaultValue = "20") @Min(1) @Max(PageQuery.MAX_SIZE) int size,
             @Parameter(description = "Part of the name, nickname or a localized name, case-insensitive")
-            @RequestParam(required = false) @Size(max = 50) String name,
+            @RequestParam(required = false) @Size(max = 50) @Pattern(regexp = NO_CONTROL_CHARACTERS, message = NO_CONTROL_CHARACTERS_MESSAGE) String name,
             @Parameter(description = "Exact tag")
-            @RequestParam(required = false) @Size(max = 30) String tag,
+            @RequestParam(required = false) @Size(max = 30) @Pattern(regexp = NO_CONTROL_CHARACTERS, message = NO_CONTROL_CHARACTERS_MESSAGE) String tag,
             @Parameter(description = "Exact PokeAPI number, to check whether a Pokémon is already collected")
             @RequestParam(required = false) @Min(1) Integer pokeapiId) {
         var pokemon = browseCollection.list(new CollectionFilter(name, tag, pokeapiId), new PageQuery(page, size));

@@ -10,6 +10,7 @@ import com.lucasamaral.pokedex.application.user.UsernameTakenException;
 import com.lucasamaral.pokedex.domain.InvalidFieldException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.exc.MismatchedInputException;
@@ -31,6 +33,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -41,6 +45,8 @@ import java.util.stream.Collectors;
 class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
+    private static final Set<Class<?>> WHOLE_NUMBERS = Set.of(
+            int.class, Integer.class, long.class, Long.class, short.class, Short.class, byte.class, Byte.class);
 
     @ExceptionHandler(CatalogUnavailableException.class)
     ProblemDetail handleCatalogUnavailable(CatalogUnavailableException exception) {
@@ -189,6 +195,22 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(exception, problem, headers, status, request);
     }
 
+    /**
+     * A query or path parameter that does not convert ("?page=abc", an id that is not a UUID), answered in the same
+     * shape as any other invalid parameter.
+     */
+    @Override
+    protected ResponseEntity<Object> handleTypeMismatch(
+            TypeMismatchException exception, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        if (!(exception instanceof MethodArgumentTypeMismatchException mismatch)) {
+            return super.handleTypeMismatch(exception, headers, status, request);
+        }
+        var problem = ProblemDetail.forStatusAndDetail(status, "One or more request parameters are invalid.");
+        problem.setTitle("Invalid request");
+        problem.setProperty("errors", List.of(Map.of("parameter", mismatch.getName(), "message", expectedKind(mismatch.getRequiredType()))));
+        return handleExceptionInternal(exception, problem, headers, status, request);
+    }
+
     private static String fieldPath(JacksonException exception) {
         return exception.getPath().stream()
                 .map(JacksonException.Reference::getPropertyName)
@@ -200,8 +222,14 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         if (type == null) {
             return "has the wrong type";
         }
+        if (WHOLE_NUMBERS.contains(type)) {
+            return "must be a whole number";
+        }
         if (Number.class.isAssignableFrom(type) || (type.isPrimitive() && type != boolean.class)) {
             return "must be a number";
+        }
+        if (type == UUID.class) {
+            return "must be a UUID";
         }
         if (Collection.class.isAssignableFrom(type) || type.isArray()) {
             return "must be a list";

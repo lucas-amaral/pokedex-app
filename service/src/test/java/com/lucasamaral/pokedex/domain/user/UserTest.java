@@ -37,6 +37,13 @@ class UserTest {
     }
 
     @Test
+    void rejectsAnEmailWithControlCharacters() {
+        // PostgreSQL cannot store a NUL character in text; it must be refused before reaching the database.
+        assertInvalid("email", () -> Email.of("br\u0000ock@pewter.city"));
+        assertInvalid("email", () -> Email.of("brock@pewter\u0007.city"));
+    }
+
+    @Test
     void aNewUserIsARegularUser() {
         var ash = User.register(Username.of("ash"), Email.of("ash@pallet.town"), "hashed", NOW);
 

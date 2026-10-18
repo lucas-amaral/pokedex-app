@@ -41,7 +41,7 @@ public record CustomFields(
 
     public CustomFields {
         nickname = optionalText("nickname", nickname, NICKNAME_MAX);
-        notes = optionalText("notes", notes, NOTES_MAX);
+        notes = optionalMultilineText("notes", notes, NOTES_MAX);
         region = optionalText("region", region, REGION_MAX);
         localizedNames = normalizeLocalizedNames(Objects.requireNonNullElse(localizedNames, Map.of()));
         tags = normalizeTags(Objects.requireNonNullElse(tags, Set.of()));
@@ -52,6 +52,23 @@ public record CustomFields(
     }
 
     private static String optionalText(String field, String value, int maxLength) {
+        var text = trimmedOrNull(field, value, maxLength);
+        if (text != null && text.chars().anyMatch(Character::isISOControl)) {
+            throw new InvalidFieldException(field, "must be a single line without control characters");
+        }
+        return text;
+    }
+
+    /** Like {@link #optionalText} but keeps line breaks and tabs. */
+    private static String optionalMultilineText(String field, String value, int maxLength) {
+        var text = trimmedOrNull(field, value, maxLength);
+        if (text != null && text.chars().anyMatch(c -> Character.isISOControl(c) && c != '\n' && c != '\r' && c != '\t')) {
+            throw new InvalidFieldException(field, "must not contain control characters other than line breaks and tabs");
+        }
+        return text;
+    }
+
+    private static String trimmedOrNull(String field, String value, int maxLength) {
         if (value == null || value.isBlank()) {
             return null;
         }

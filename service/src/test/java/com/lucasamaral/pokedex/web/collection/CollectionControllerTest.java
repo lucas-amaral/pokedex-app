@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.lucasamaral.pokedex.infrastructure.config.JsonConfig;
 import com.lucasamaral.pokedex.infrastructure.security.SecurityConfig;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -45,7 +46,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 
 @WebMvcTest(CollectionController.class)
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, JsonConfig.class})
 class CollectionControllerTest {
 
     private static final String COLLECTION = "/api/v1/pokemon";
@@ -117,7 +118,11 @@ class CollectionControllerTest {
 
     @ParameterizedTest
     @org.junit.jupiter.params.provider.CsvSource(delimiter = '|', value = {
-            "{\"version\": \"abc\"}                     | version        | must be a number",
+            "{\"version\": \"abc\"}                     | version        | must be a whole number",
+            "{\"version\": \"3\"}                       | version        | must be a whole number",
+            "{\"version\": 1.7}                       | version        | must be a whole number",
+            "{\"version\": 0, \"nickname\": 123}       | nickname       | must be text",
+            "{\"version\": 0, \"tags\": [7]}           | tags           | must be text",
             "{\"version\": 0, \"tags\": \"starter\"}      | tags           | must be a list",
             "{\"version\": 0, \"localizedNames\": []}  | localizedNames | must be an object",
             "{\"version\": 0, \"nickname\": [\"Bulby\"]} | nickname       | must be text"})
@@ -197,6 +202,43 @@ class CollectionControllerTest {
         assertThat(mvc.get().uri(COLLECTION + "?size=1&pokeapiId=25")).hasStatus(HttpStatus.OK);
 
         verify(browseCollection).list(new CollectionFilter(null, null, 25), new PageQuery(0, 1));
+    }
+
+    @Test
+    void rejectsAFieldSentTwice() {
+        var response = mvc.put().with(user()).uri(COLLECTION + "/{id}", bulbasaur.id())
+                .contentType(MediaType.APPLICATION_JSON).content("{\"version\": 0, \"version\": 3}").exchange();
+
+        assertThat(response).hasStatus(HttpStatus.BAD_REQUEST).hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
+        assertThat(response).bodyJson().extractingPath("$.title").isEqualTo("Invalid request");
+        verifyNoInteractions(updatePokemon);
+    }
+
+    @ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource(delimiter = '|', value = {
+            "name | Pika\u0000chu",
+            "tag  | star\u0007ter"})
+    void rejectsControlCharactersInTheFilters(String parameter, String value) {
+        var response = mvc.get().uri(COLLECTION).param(parameter, value).exchange();
+
+        assertThat(response).hasStatus(HttpStatus.BAD_REQUEST).hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
+        assertThat(response).bodyJson().extractingPath("$.errors[0].parameter").isEqualTo(parameter);
+        verifyNoInteractions(browseCollection);
+    }
+
+    @ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource(delimiter = '|', value = {
+            "/not-a-uuid   | id   | must be a UUID",
+            "?page=abc     | page | must be a whole number",
+            "?pokeapiId=x  | pokeapiId | must be a whole number"})
+    void explainsAParameterOfTheWrongTypeLikeAnyOtherInvalidParameter(String path, String parameter, String message) {
+        var response = mvc.get().uri(COLLECTION + path).exchange();
+
+        assertThat(response).hasStatus(HttpStatus.BAD_REQUEST).hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
+        assertThat(response).bodyJson().extractingPath("$.title").isEqualTo("Invalid request");
+        assertThat(response).bodyJson().extractingPath("$.errors[0].parameter").isEqualTo(parameter);
+        assertThat(response).bodyJson().extractingPath("$.errors[0].message").isEqualTo(message);
+        verifyNoInteractions(browseCollection);
     }
 
     @Test

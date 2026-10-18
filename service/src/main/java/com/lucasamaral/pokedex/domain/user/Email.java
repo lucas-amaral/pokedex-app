@@ -15,7 +15,8 @@ public record Email(String value) {
     private static final Pattern FORMAT = Pattern.compile("[^@\\s]+@[^@\\s]+\\.[^@\\s]+");
 
     public Email {
-        if (value == null || value.length() > MAX_LENGTH || !FORMAT.matcher(value).matches()) {
+        if (value == null || value.length() > MAX_LENGTH || !FORMAT.matcher(value).matches()
+                || value.chars().anyMatch(Character::isISOControl)) {
             throw new InvalidFieldException("email", "must be a valid email address");
         }
     }

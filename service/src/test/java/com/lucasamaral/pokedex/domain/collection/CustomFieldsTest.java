@@ -94,6 +94,23 @@ class CustomFieldsTest {
         assertInvalid("localizedNames", () -> new CustomFields(null, null, null, Map.of("pt-BR", "  "), Set.of()));
     }
 
+    @Test
+    void rejectsControlCharactersInSingleLineText() {
+        // PostgreSQL cannot store a NUL character in text, and none of these fields is meant to hold line breaks.
+        assertInvalid("nickname", () -> new CustomFields("Pika\u0000chu", null, null, Map.of(), Set.of()));
+        assertInvalid("nickname", () -> new CustomFields("Pika\nchu", null, null, Map.of(), Set.of()));
+        assertInvalid("region", () -> new CustomFields(null, null, "Kan\u0007to", Map.of(), Set.of()));
+        assertInvalid("localizedNames", () -> new CustomFields(null, null, null, Map.of("ja", "ピカ\u0000チュウ"), Set.of()));
+    }
+
+    @Test
+    void keepsLineBreaksAndTabsInNotesButNoOtherControlCharacters() {
+        var fields = new CustomFields(null, "Caught in Viridian Forest.\r\nLevel 5.\tShy.", null, Map.of(), Set.of());
+
+        assertThat(fields.notes()).isEqualTo("Caught in Viridian Forest.\r\nLevel 5.\tShy.");
+        assertInvalid("notes", () -> new CustomFields(null, "Shy\u0000", null, Map.of(), Set.of()));
+    }
+
     private static void assertInvalid(String field, Runnable creation) {
         assertThatExceptionOfType(InvalidFieldException.class)
                 .isThrownBy(creation::run)

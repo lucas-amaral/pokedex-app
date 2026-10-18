@@ -13,6 +13,7 @@ import com.lucasamaral.pokedex.application.user.AuthenticateUserUseCase;
 import com.lucasamaral.pokedex.application.user.GetCurrentUserUseCase;
 import com.lucasamaral.pokedex.application.user.RegisterUserUseCase;
 import com.lucasamaral.pokedex.domain.collection.CollectedPokemon;
+import com.lucasamaral.pokedex.infrastructure.config.JsonConfig;
 import com.lucasamaral.pokedex.infrastructure.security.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
  * Who may call what: reads are public, changes need a login, removing a Pokémon needs ADMIN.
  */
 @WebMvcTest
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, JsonConfig.class})
 class RouteSecurityTest {
 
     private static final String SYNC_BODY = "{\"idOrName\": \"bulbasaur\"}";
