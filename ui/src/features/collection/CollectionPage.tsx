@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from 'react'
-import { Link, useSearchParams } from 'react-router'
+import { Link, useLocation, useSearchParams } from 'react-router'
 import { ErrorState } from '../../components/ErrorState'
 import { Pagination } from '../../components/Pagination'
 import { TypeBadges } from '../../components/TypeBadges'
@@ -26,6 +26,7 @@ export function CollectionPage() {
   const { name, tag, page } = readAddress(searchParams)
   const { data, error, isPending, isPlaceholderData, refetch } = useCollectionPage({ page, size: PAGE_SIZE, name, tag })
   const isFiltered = name !== '' || tag !== ''
+  const removedName = (useLocation().state as { removedName?: string } | null)?.removedName
 
   function applyFilters(next: { name: string; tag: string }, nextPage = 0) {
     const params: Record<string, string> = {}
@@ -48,12 +49,16 @@ export function CollectionPage() {
         )}
       </div>
 
+      {removedName && (
+        <p role="status" className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
+          {removedName} was removed from your collection.
+        </p>
+      )}
+
       <FilterForm key={searchParams.toString()} name={name} tag={tag} onApply={applyFilters} isFiltered={isFiltered} />
 
       {isPending && (
-        <div role="status" className="h-64 animate-pulse rounded-xl border border-slate-200 bg-white">
-          <span className="sr-only">Loading your collection…</span>
-        </div>
+        <div aria-busy="true" aria-label="Loading your collection" className="h-64 animate-pulse rounded-xl border border-slate-200 bg-white" />
       )}
 
       {error && !data && <ErrorState error={error} onRetry={() => void refetch()} />}

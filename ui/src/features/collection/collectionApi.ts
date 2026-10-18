@@ -1,5 +1,6 @@
-import { getJson, sendJson } from '../../api/http'
+import { getJson, sendJson, sendWithoutBody } from '../../api/http'
 import type { Page } from '../../api/types'
+import type { UpdateCollectedPokemonRequest } from './editFieldsSchema'
 import type { CollectedPokemon, CollectedPokemonSummary, SyncResult } from './types'
 
 const CREATED = 201
@@ -28,4 +29,13 @@ export function fetchCollectionPage({ page, size, name, tag, pokeapiId }: Collec
 
 export function fetchCollectedPokemon(id: string, signal?: AbortSignal) {
   return getJson<CollectedPokemon>(`/api/v1/pokemon/${encodeURIComponent(id)}`, {}, signal)
+}
+
+export async function updateCollectedPokemon(id: string, request: UpdateCollectedPokemonRequest): Promise<CollectedPokemon> {
+  const response = await sendJson<CollectedPokemon>('PUT', `/api/v1/pokemon/${encodeURIComponent(id)}`, request)
+  return response.data
+}
+
+export function removeCollectedPokemon(id: string): Promise<void> {
+  return sendWithoutBody('DELETE', `/api/v1/pokemon/${encodeURIComponent(id)}`)
 }

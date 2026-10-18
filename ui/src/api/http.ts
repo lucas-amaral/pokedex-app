@@ -28,6 +28,11 @@ export async function sendJson<T>(method: 'POST' | 'PUT' | 'PATCH', path: string
   return { status: response.status, data: (await response.json()) as T }
 }
 
+/** Send a request whose success has no body, such as DELETE (204). */
+export async function sendWithoutBody(method: 'DELETE', path: string): Promise<void> {
+  await send(new URL(path, window.location.origin), { method, headers: { Accept: 'application/json' } })
+}
+
 async function send(url: URL, init: RequestInit): Promise<Response> {
   let response: Response
   try {

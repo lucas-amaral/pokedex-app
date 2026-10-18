@@ -200,7 +200,7 @@ Every error is an [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) problem det
 
 | Status | When |
 | --- | --- |
-| 400 | Invalid parameters or body fields (`errors` lists each one, by `parameter` or `field`), fields that cannot be edited, wrong types, or a body that is not JSON |
+| 400 | Invalid parameters or body fields (`errors` lists each one, by `parameter` or `field`), fields that cannot be edited, a field with the wrong type (for example `{"field": "version", "message": "must be a number"}`), or a body that is not JSON |
 | 404 | No Pokémon with that number or name ("Pokémon not found"), no such id in the collection ("Pokémon not in the collection"), or unknown route |
 | 409 | The Pokémon changed since the version sent with an edit ("Pokémon changed since you loaded it", with `expectedVersion` and `currentVersion`) |
 | 503 | PokeAPI is down, too slow or returned an error |

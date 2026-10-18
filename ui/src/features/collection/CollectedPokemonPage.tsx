@@ -1,10 +1,14 @@
+import { useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { ErrorState } from '../../components/ErrorState'
 import { StatBars } from '../../components/StatBars'
 import { TypeBadges } from '../../components/TypeBadges'
 import { formatDate, formatDexNumber, formatHeight, formatPokemonName, formatWeight } from '../../lib/format'
 import { useDocumentTitle } from '../../lib/useDocumentTitle'
-import { useCollectedPokemon, useSyncPokemon } from './collectionQueries'
+import { collectionKeys, useCollectedPokemon, useSyncPokemon } from './collectionQueries'
+import { EditFieldsForm } from './EditFieldsForm'
+import { RemoveFromCollection } from './RemoveFromCollection'
 import type { CollectedPokemon } from './types'
 
 /** The service answers 400 for an id that is not a UUID and 404 for an unknown one; both mean "not here". */
@@ -101,6 +105,7 @@ function Collected({ pokemon }: { pokemon: CollectedPokemon }) {
           <Link to={`/pokemon/${pokemon.name}`} className="block text-sm font-medium text-red-600 hover:underline">
             View in catalog
           </Link>
+          <RemoveFromCollection id={pokemon.id} title={title} />
         </div>
       </div>
 
@@ -120,17 +125,52 @@ function Collected({ pokemon }: { pokemon: CollectedPokemon }) {
   )
 }
 
-/** The proprietary fields: data PokeAPI does not have and a sync never changes. */
+/** The proprietary fields: data PokeAPI does not have and a sync never changes. Editable here (US04). */
 function YourFields({ pokemon }: { pokemon: CollectedPokemon }) {
+  const [isEditing, setEditing] = useState(false)
+  const [justSaved, setJustSaved] = useState(false)
+  const queryClient = useQueryClient()
   const languages = Object.entries(pokemon.localizedNames)
   const isEmpty = !pokemon.nickname && !pokemon.notes && !pokemon.region && languages.length === 0 && pokemon.tags.length === 0
 
+  function startEditing() {
+    setJustSaved(false)
+    setEditing(true)
+  }
+
+  function reloadLatest() {
+    setEditing(false)
+    void queryClient.invalidateQueries({ queryKey: collectionKeys.item(pokemon.id) })
+  }
+
   return (
     <section aria-labelledby="your-fields-heading" className="rounded-xl border border-slate-200 bg-white p-4">
-      <h2 id="your-fields-heading" className="mb-3 font-semibold">
-        Your fields
-      </h2>
-      {isEmpty ? (
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h2 id="your-fields-heading" className="font-semibold">
+          Your fields
+        </h2>
+        {!isEditing && (
+          <button type="button" onClick={startEditing} className="text-sm font-medium text-red-600 hover:underline">
+            Edit your fields
+          </button>
+        )}
+      </div>
+      {justSaved && (
+        <p role="status" className="mb-3 text-sm text-green-700">
+          Saved.
+        </p>
+      )}
+      {isEditing ? (
+        <EditFieldsForm
+          pokemon={pokemon}
+          onSaved={() => {
+            setEditing(false)
+            setJustSaved(true)
+          }}
+          onCancel={() => setEditing(false)}
+          onReloadLatest={reloadLatest}
+        />
+      ) : isEmpty ? (
         <p className="text-sm text-slate-500">No nickname, notes, region, names or tags yet.</p>
       ) : (
         <dl className="grid gap-3 text-sm sm:grid-cols-2">

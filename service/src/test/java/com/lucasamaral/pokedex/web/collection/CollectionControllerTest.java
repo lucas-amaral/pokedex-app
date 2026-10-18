@@ -103,9 +103,29 @@ class CollectionControllerTest {
 
     @Test
     void rejectsABodyThatIsNotJson() {
-        var response = mvc.post().uri(COLLECTION + "/sync").contentType(MediaType.APPLICATION_JSON).content("bulbasaur");
+        var response = mvc.post().uri(COLLECTION + "/sync").contentType(MediaType.APPLICATION_JSON).content("bulbasaur")
+                .exchange();
 
         assertThat(response).hasStatus(HttpStatus.BAD_REQUEST).hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
+        assertThat(response).bodyJson().extractingPath("$.title").isEqualTo("Invalid request");
+        assertThat(response).bodyJson().extractingPath("$.detail").isEqualTo("The request body is not valid JSON.");
+    }
+
+    @ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource(delimiter = '|', value = {
+            "{\"version\": \"abc\"}                     | version        | must be a number",
+            "{\"version\": 0, \"tags\": \"starter\"}      | tags           | must be a list",
+            "{\"version\": 0, \"localizedNames\": []}  | localizedNames | must be an object",
+            "{\"version\": 0, \"nickname\": [\"Bulby\"]} | nickname       | must be text"})
+    void namesTheFieldThatHasTheWrongType(String body, String field, String message) {
+        var response = mvc.put().uri(COLLECTION + "/{id}", bulbasaur.id())
+                .contentType(MediaType.APPLICATION_JSON).content(body).exchange();
+
+        assertThat(response).hasStatus(HttpStatus.BAD_REQUEST).hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
+        assertThat(response).bodyJson().extractingPath("$.title").isEqualTo("Invalid request");
+        assertThat(response).bodyJson().extractingPath("$.errors[0].field").isEqualTo(field);
+        assertThat(response).bodyJson().extractingPath("$.errors[0].message").isEqualTo(message);
+        verifyNoInteractions(updatePokemon);
     }
 
     @Test

@@ -1,10 +1,10 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 import { renderRoute } from '../../test/renderRoute'
 import { server } from '../../test/server'
-import { collectedBulbasaur, collectedCharmander } from './fixtures'
+import { collectedBulbasaur, collectedCharmander, collectionPage } from './fixtures'
 
 const ONE = '*/api/v1/pokemon/:id'
 
@@ -61,5 +61,168 @@ describe('CollectedPokemonPage', () => {
 
     expect(await screen.findByRole('heading', { name: 'Pokémon not in your collection' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Back to your collection' })).toHaveAttribute('href', '/collection')
+  })
+  it('edits the proprietary fields and shows the saved values', async () => {
+    let sent: unknown
+    server.use(
+      http.get(ONE, () => HttpResponse.json(collectedBulbasaur)),
+      http.put(ONE, async ({ request }) => {
+        sent = await request.json()
+        return HttpResponse.json({ ...collectedBulbasaur, nickname: 'Bulbie', tags: ['grass-team', 'starter'], version: 1 })
+      }),
+    )
+    const user = userEvent.setup()
+    renderRoute(`/collection/${collectedBulbasaur.id}`)
+
+    await user.click(await screen.findByRole('button', { name: 'Edit your fields' }))
+    const nickname = screen.getByRole('textbox', { name: 'Nickname' })
+    expect(nickname).toHaveValue('Bulby')
+    await user.clear(nickname)
+    await user.type(nickname, 'Bulbie')
+    await user.type(screen.getByRole('textbox', { name: 'Tags' }), ', Grass-Team')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Saved')
+    expect(screen.getByRole('heading', { level: 1, name: 'Bulbie' })).toBeInTheDocument()
+    expect(sent).toEqual({
+      version: 0,
+      nickname: 'Bulbie',
+      notes: 'Our first starter',
+      region: 'Kanto',
+      localizedNames: { ja: 'フシギダネ', 'pt-BR': 'Bulbassauro' },
+      tags: ['starter', 'grass-team'],
+    })
+  })
+
+  it('adds and removes localized names', async () => {
+    let sent: { localizedNames?: Record<string, string> } = {}
+    server.use(
+      http.get(ONE, () => HttpResponse.json(collectedCharmander)),
+      http.put(ONE, async ({ request }) => {
+        sent = (await request.json()) as typeof sent
+        return HttpResponse.json({ ...collectedCharmander, version: 1 })
+      }),
+    )
+    const user = userEvent.setup()
+    renderRoute(`/collection/${collectedCharmander.id}`)
+
+    await user.click(await screen.findByRole('button', { name: 'Edit your fields' }))
+    await user.click(screen.getByRole('button', { name: 'Add a language' }))
+    await user.type(screen.getByRole('textbox', { name: 'Language 1' }), 'pt-BR')
+    await user.type(screen.getByRole('textbox', { name: 'Name in language 1' }), 'Charmander')
+    await user.click(screen.getByRole('button', { name: 'Add a language' }))
+    await user.click(screen.getByRole('button', { name: 'Remove language 2' }))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(sent.localizedNames).toEqual({ 'pt-BR': 'Charmander' }))
+  })
+
+  it('explains invalid input before sending anything', async () => {
+    server.use(http.get(ONE, () => HttpResponse.json(collectedBulbasaur)))
+    const user = userEvent.setup()
+    renderRoute(`/collection/${collectedBulbasaur.id}`)
+
+    await user.click(await screen.findByRole('button', { name: 'Edit your fields' }))
+    const tags = screen.getByRole('textbox', { name: 'Tags' })
+    await user.clear(tags)
+    await user.type(tags, 'has space')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(await screen.findByText(/lowercase letters, digits and hyphens/)).toBeInTheDocument()
+    expect(tags).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('shows the errors the service finds next to the fields', async () => {
+    server.use(
+      http.get(ONE, () => HttpResponse.json(collectedBulbasaur)),
+      http.put(ONE, () =>
+        HttpResponse.json(
+          { status: 400, title: 'Invalid request', errors: [{ field: 'region', message: 'region must be at most 50 characters' }] },
+          { status: 400 },
+        ),
+      ),
+    )
+    const user = userEvent.setup()
+    renderRoute(`/collection/${collectedBulbasaur.id}`)
+
+    await user.click(await screen.findByRole('button', { name: 'Edit your fields' }))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(await screen.findByText('region must be at most 50 characters')).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Region' })).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('explains a conflict and offers to load the latest version', async () => {
+    let reads = 0
+    server.use(
+      http.get(ONE, () => {
+        reads += 1
+        return HttpResponse.json(reads === 1 ? collectedBulbasaur : { ...collectedBulbasaur, nickname: 'Seedy', version: 1 })
+      }),
+      http.put(ONE, () =>
+        HttpResponse.json(
+          { status: 409, title: 'Pokémon changed since you loaded it', detail: 'Someone else changed this Pokémon.', currentVersion: 1 },
+          { status: 409 },
+        ),
+      ),
+    )
+    const user = userEvent.setup()
+    renderRoute(`/collection/${collectedBulbasaur.id}`)
+
+    await user.click(await screen.findByRole('button', { name: 'Edit your fields' }))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Pokémon changed since you loaded it')
+
+    await user.click(screen.getByRole('button', { name: 'Load the latest version' }))
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Seedy' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument()
+  })
+
+  it('cancels an edit without saving', async () => {
+    server.use(http.get(ONE, () => HttpResponse.json(collectedBulbasaur)))
+    const user = userEvent.setup()
+    renderRoute(`/collection/${collectedBulbasaur.id}`)
+
+    await user.click(await screen.findByRole('button', { name: 'Edit your fields' }))
+    await user.type(screen.getByRole('textbox', { name: 'Nickname' }), 'zzz')
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(screen.getByRole('region', { name: 'Your fields' })).toHaveTextContent('Bulby')
+    expect(screen.getByRole('region', { name: 'Your fields' })).not.toHaveTextContent('Bulbyzzz')
+  })
+
+  it('removes the Pokémon after confirmation and says so in the collection', async () => {
+    let deleted = false
+    server.use(
+      http.get(ONE, () => HttpResponse.json(collectedBulbasaur)),
+      http.delete(ONE, () => {
+        deleted = true
+        return new HttpResponse(null, { status: 204 })
+      }),
+      http.get('*/api/v1/pokemon', () => HttpResponse.json(collectionPage([collectedCharmander]))),
+    )
+    const user = userEvent.setup()
+    const { router } = renderRoute(`/collection/${collectedBulbasaur.id}`)
+
+    await user.click(await screen.findByRole('button', { name: 'Remove from collection' }))
+    expect(screen.getByRole('alertdialog')).toHaveTextContent('Remove Bulby from your collection?')
+    await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Remove' }))
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Bulby was removed from your collection.')
+    expect(router.state.location.pathname).toBe('/collection')
+    expect(deleted).toBe(true)
+  })
+
+  it('keeps the Pokémon when the removal is cancelled', async () => {
+    server.use(http.get(ONE, () => HttpResponse.json(collectedBulbasaur)))
+    const user = userEvent.setup()
+    renderRoute(`/collection/${collectedBulbasaur.id}`)
+
+    await user.click(await screen.findByRole('button', { name: 'Remove from collection' }))
+    await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Cancel' }))
+
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Bulby' })).toBeInTheDocument()
   })
 })

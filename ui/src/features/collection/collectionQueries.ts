@@ -1,7 +1,15 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ApiError } from '../../api/ApiError'
 import type { Page } from '../../api/types'
-import { type CollectionPageRequest, fetchCollectedPokemon, fetchCollectionPage, syncPokemon } from './collectionApi'
+import {
+  type CollectionPageRequest,
+  fetchCollectedPokemon,
+  fetchCollectionPage,
+  removeCollectedPokemon,
+  syncPokemon,
+  updateCollectedPokemon,
+} from './collectionApi'
+import type { UpdateCollectedPokemonRequest } from './editFieldsSchema'
 import type { CollectedPokemon, CollectedPokemonSummary, SyncResult } from './types'
 
 /** Query keys in one place, so a sync can refresh exactly the cached data it affects. */
@@ -46,6 +54,29 @@ export function useSyncPokemon() {
     mutationFn: syncPokemon,
     onSuccess: (result) => {
       queryClient.setQueryData(collectionKeys.item(result.pokemon.id), result.pokemon)
+      void queryClient.invalidateQueries({ queryKey: collectionKeys.lists() })
+    },
+  })
+}
+
+/** Saves the proprietary fields; the saved Pokémon (with its new version) replaces the cached one. */
+export function useUpdateCollectedPokemon(id: string) {
+  const queryClient = useQueryClient()
+  return useMutation<CollectedPokemon, ApiError, UpdateCollectedPokemonRequest>({
+    mutationFn: (request) => updateCollectedPokemon(id, request),
+    onSuccess: (saved) => {
+      queryClient.setQueryData(collectionKeys.item(id), saved)
+      void queryClient.invalidateQueries({ queryKey: collectionKeys.lists() })
+    },
+  })
+}
+
+export function useRemoveCollectedPokemon(id: string) {
+  const queryClient = useQueryClient()
+  return useMutation<void, ApiError, void>({
+    mutationFn: () => removeCollectedPokemon(id),
+    onSuccess: () => {
+      queryClient.removeQueries({ queryKey: collectionKeys.item(id) })
       void queryClient.invalidateQueries({ queryKey: collectionKeys.lists() })
     },
   })

@@ -35,6 +35,8 @@ export interface CollectedPokemon {
   localizedNames: Record<string, string>
   tags: string[]
   syncedAt: string
+  /** Sent back with an edit; the service refuses edits based on an older version (409). */
+  version: number
 }
 
 export interface SyncResult {

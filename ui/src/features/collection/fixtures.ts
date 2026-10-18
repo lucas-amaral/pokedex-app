@@ -31,6 +31,7 @@ export const collectedBulbasaur: CollectedPokemon = {
   localizedNames: { ja: 'フシギダネ', 'pt-BR': 'Bulbassauro' },
   tags: ['starter'],
   syncedAt: '2026-10-18T10:00:00Z',
+  version: 0,
 }
 
 export const collectedCharmander: CollectedPokemon = {

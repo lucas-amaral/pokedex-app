@@ -13,7 +13,7 @@ The project is built story by story, test-first, on a Clean Architecture backend
 | US01 Browse | Page through Pokémon with sprite, category, weight and abilities | Done (API and UI) |
 | US02 Details | See one Pokémon's artwork, base stats, description and evolution chain | Done (API and UI) |
 | US03 Sync | Copy a Pokémon into the local database to add proprietary fields | Done (API and UI) |
-| US04 Edit | Update the proprietary fields of a stored Pokémon, with validation; remove it | In progress (API done) |
+| US04 Edit | Update the proprietary fields of a stored Pokémon, with validation; remove it | Done (API and UI) |
 | Users | Register, log in, public versus protected routes | Planned |
 
 ## Quick start
@@ -95,6 +95,7 @@ flowchart LR
 | Front-end | React 19, TypeScript, Vite 8, Tailwind 4 | Typed components, fast dev server, responsive utility CSS |
 | Server state | TanStack Query | Caching, loading and error states, pagination |
 | Routing | React Router | One address per page; the catalog page lives in the address |
+| Forms | React Hook Form + Zod | Client-side validation mirroring the API's rules |
 | Front-end tests | Vitest, Testing Library, MSW | Tests that use the UI as a user would, against a fake API |
 
 ## Testing
@@ -117,7 +118,6 @@ before submission.
 
 ## Roadmap
 
-- US04: edit and remove screens
 - User registration, login and protected routes (JWT)
 - Seed data (Generations 1 and 2) and demo credentials
 - Dockerfiles and Docker Compose
