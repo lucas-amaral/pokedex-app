@@ -4,6 +4,9 @@ import com.lucasamaral.pokedex.application.catalog.CatalogUnavailableException;
 import com.lucasamaral.pokedex.application.catalog.PokemonNotFoundException;
 import com.lucasamaral.pokedex.application.collection.CollectedPokemonNotFoundException;
 import com.lucasamaral.pokedex.application.collection.CollectedPokemonVersionConflictException;
+import com.lucasamaral.pokedex.application.user.EmailTakenException;
+import com.lucasamaral.pokedex.application.user.InvalidCredentialsException;
+import com.lucasamaral.pokedex.application.user.UsernameTakenException;
 import com.lucasamaral.pokedex.domain.InvalidFieldException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +16,8 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -80,6 +85,42 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return invalidFields(exception.fields().stream().sorted()
                 .map(field -> fieldError(field, "is not an editable field"))
                 .toList());
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    ProblemDetail handleInvalidCredentials(InvalidCredentialsException exception) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, exception.getMessage());
+        problem.setTitle("Login failed");
+        return problem;
+    }
+
+    @ExceptionHandler(UsernameTakenException.class)
+    ProblemDetail handleUsernameTaken(UsernameTakenException exception) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, exception.getMessage());
+        problem.setTitle("Username taken");
+        return problem;
+    }
+
+    @ExceptionHandler(EmailTakenException.class)
+    ProblemDetail handleEmailTaken(EmailTakenException exception) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, exception.getMessage());
+        problem.setTitle("Email taken");
+        return problem;
+    }
+
+    /** Normally answered by the security filters; kept here so they can never fall into the 500 handler below. */
+    @ExceptionHandler(AuthenticationException.class)
+    ProblemDetail handleAuthentication(AuthenticationException exception) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Log in and try again.");
+        problem.setTitle("Authentication required");
+        return problem;
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    ProblemDetail handleAccessDenied(AccessDeniedException exception) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, "Your account is not allowed to do this.");
+        problem.setTitle("Not allowed");
+        return problem;
     }
 
     @ExceptionHandler(Exception.class)

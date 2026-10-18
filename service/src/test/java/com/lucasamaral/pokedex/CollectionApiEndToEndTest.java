@@ -2,6 +2,7 @@ package com.lucasamaral.pokedex;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.lucasamaral.pokedex.application.collection.CollectionRepository;
+import com.lucasamaral.pokedex.application.user.PasswordHasher;
 import com.lucasamaral.pokedex.domain.collection.CustomFields;
 import com.lucasamaral.pokedex.support.PostgresTestConfiguration;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +13,7 @@ import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTe
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -63,17 +65,48 @@ class CollectionApiEndToEndTest {
     @Autowired
     private CacheManager cacheManager;
 
+    @Autowired
+    private PasswordHasher passwordHasher;
+
+    private String userBearer;
+    private String adminBearer;
+
     @BeforeEach
     void startEmpty() {
-        jdbc.execute("TRUNCATE pokemon CASCADE");
+        jdbc.execute("TRUNCATE pokemon, users CASCADE");
         cacheManager.getCacheNames().forEach(name -> cacheManager.getCache(name).clear());
+        userBearer = registerAndLogIn();
+        adminBearer = createAdminAndLogIn();
+    }
+
+    /** The real flow: a person signs up and logs in through the API. */
+    private String registerAndLogIn() {
+        client.post().uri("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON)
+                .body("{\"username\": \"ash\", \"email\": \"ash@pallet.town\", \"password\": \"pikachu123\"}")
+                .exchange().expectStatus().isCreated();
+        return logIn("ash", "pikachu123");
+    }
+
+    /** Admins cannot sign up; like the seed data, this one is written to the database. */
+    private String createAdminAndLogIn() {
+        jdbc.update("INSERT INTO users (id, username, email, password_hash, role, created_at) VALUES (?, ?, ?, ?, 'ADMIN', now())",
+                UUID.randomUUID(), "oak", "oak@pallet.town", passwordHasher.hash("professor123"));
+        return logIn("oak", "professor123");
+    }
+
+    private String logIn(String username, String password) {
+        var body = client.post().uri("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
+                .body("{\"username\": \"%s\", \"password\": \"%s\"}".formatted(username, password))
+                .exchange().expectStatus().isOk()
+                .expectBody(Map.class).returnResult().getResponseBody();
+        return "Bearer " + body.get("accessToken");
     }
 
     @Test
     void addsAPokemonThenFindsItByItsLocationAndInTheList() {
         stubBulbasaur(69);
 
-        var location = client.post().uri(COLLECTION + "/sync")
+        var location = client.post().uri(COLLECTION + "/sync").header(HttpHeaders.AUTHORIZATION, userBearer)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body("{\"idOrName\": \"bulbasaur\"}")
                 .exchange()
@@ -106,7 +139,7 @@ class CollectionApiEndToEndTest {
         stubBulbasaur(70);
         cacheManager.getCacheNames().forEach(name -> cacheManager.getCache(name).clear());
 
-        client.post().uri(COLLECTION + "/sync")
+        client.post().uri(COLLECTION + "/sync").header(HttpHeaders.AUTHORIZATION, userBearer)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body("{\"idOrName\": \"1\"}")
                 .exchange()
@@ -135,7 +168,7 @@ class CollectionApiEndToEndTest {
     void storesNothingForAPokemonPokeApiDoesNotKnow() {
         pokeApi.stubFor(get("/pokemon/missingno").willReturn(notFound()));
 
-        client.post().uri(COLLECTION + "/sync")
+        client.post().uri(COLLECTION + "/sync").header(HttpHeaders.AUTHORIZATION, userBearer)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body("{\"idOrName\": \"missingno\"}")
                 .exchange()
@@ -149,7 +182,7 @@ class CollectionApiEndToEndTest {
     void storesNothingWhenPokeApiIsDown() {
         pokeApi.stubFor(get("/pokemon/bulbasaur").willReturn(serviceUnavailable()));
 
-        client.post().uri(COLLECTION + "/sync")
+        client.post().uri(COLLECTION + "/sync").header(HttpHeaders.AUTHORIZATION, userBearer)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body("{\"idOrName\": \"bulbasaur\"}")
                 .exchange()
@@ -171,7 +204,7 @@ class CollectionApiEndToEndTest {
         stubBulbasaur(69);
         var id = syncAndReadId("bulbasaur");
 
-        client.put().uri(COLLECTION + "/" + id)
+        client.put().uri(COLLECTION + "/" + id).header(HttpHeaders.AUTHORIZATION, userBearer)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body("""
                         {"version": 0, "nickname": " Bulby ", "notes": "Our first starter", "region": "Kanto",
@@ -228,10 +261,10 @@ class CollectionApiEndToEndTest {
         stubBulbasaur(69);
         var id = syncAndReadId("bulbasaur");
 
-        client.delete().uri(COLLECTION + "/" + id).exchange().expectStatus().isNoContent();
+        client.delete().uri(COLLECTION + "/" + id).header(HttpHeaders.AUTHORIZATION, adminBearer).exchange().expectStatus().isNoContent();
 
         client.get().uri(COLLECTION + "/" + id).exchange().expectStatus().isNotFound();
-        client.delete().uri(COLLECTION + "/" + id).exchange().expectStatus().isNotFound();
+        client.delete().uri(COLLECTION + "/" + id).header(HttpHeaders.AUTHORIZATION, adminBearer).exchange().expectStatus().isNotFound();
         assertThat(jdbc.queryForObject("SELECT count(*) FROM pokemon", Integer.class)).isZero();
     }
 
@@ -239,7 +272,7 @@ class CollectionApiEndToEndTest {
     void canAddAPokemonAgainAfterRemovingIt() {
         stubBulbasaur(69);
         var first = syncAndReadId("bulbasaur");
-        client.delete().uri(COLLECTION + "/" + first).exchange().expectStatus().isNoContent();
+        client.delete().uri(COLLECTION + "/" + first).header(HttpHeaders.AUTHORIZATION, adminBearer).exchange().expectStatus().isNoContent();
 
         var second = syncAndReadId("bulbasaur");
 
@@ -247,11 +280,11 @@ class CollectionApiEndToEndTest {
     }
 
     private RestTestClient.ResponseSpec edit(UUID id, String body) {
-        return client.put().uri(COLLECTION + "/" + id).contentType(MediaType.APPLICATION_JSON).body(body).exchange();
+        return client.put().uri(COLLECTION + "/" + id).header(HttpHeaders.AUTHORIZATION, userBearer).contentType(MediaType.APPLICATION_JSON).body(body).exchange();
     }
 
     private UUID syncAndReadId(String idOrName) {
-        var id = client.post().uri(COLLECTION + "/sync")
+        var id = client.post().uri(COLLECTION + "/sync").header(HttpHeaders.AUTHORIZATION, userBearer)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body("{\"idOrName\": \"" + idOrName + "\"}")
                 .exchange()

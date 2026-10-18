@@ -23,6 +23,12 @@ spring:
 pokedex:
   api:
     version: 0.0.1
+  security:
+    jwt:
+      # Development default only: set POKEDEX_SECURITY_JWT_SECRET (32+ bytes) everywhere else.
+      secret: dev-only-secret-change-me-before-any-deployment-0123456789
+      token-ttl: 2h
+      issuer: pokedex-service
   pokeapi:
     base-url: https://pokeapi.co/api/v2
     connect-timeout: 2s

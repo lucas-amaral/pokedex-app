@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -55,6 +56,7 @@ class CollectionController {
     }
 
     @PostMapping("/sync")
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Add a Pokémon to the collection, or refresh its copy",
             description = "Copies the Pokémon from PokeAPI. A Pokémon already in the collection gets fresh source data "
                     + "and keeps its proprietary fields.")
@@ -63,6 +65,8 @@ class CollectionController {
     @ApiResponse(responseCode = "400", description = "Missing or malformed number or name", content = @Content(
             mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ProblemDetail.class)))
     @ApiResponse(responseCode = "404", description = "PokeAPI has no Pokémon with that number or name", content = @Content(
+            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ProblemDetail.class)))
+    @ApiResponse(responseCode = "401", description = "Not logged in", content = @Content(
             mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ProblemDetail.class)))
     @ApiResponse(responseCode = "503", description = "PokeAPI is unavailable or too slow", content = @Content(
             mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ProblemDetail.class)))
@@ -111,6 +115,7 @@ class CollectionController {
     }
 
     @PutMapping("/{id}")
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Edit the proprietary fields of a collected Pokémon",
             description = "Replaces nickname, notes, region, localized names and tags (a field left out is cleared). "
                     + "Data copied from PokeAPI cannot be edited. Send the version you read; if the Pokémon changed "
@@ -119,6 +124,8 @@ class CollectionController {
     @ApiResponse(responseCode = "400", description = "Malformed body, invalid field, or a field that cannot be edited",
             content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ProblemDetail.class)))
     @ApiResponse(responseCode = "404", description = "No Pokémon with that id in the collection", content = @Content(
+            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ProblemDetail.class)))
+    @ApiResponse(responseCode = "401", description = "Not logged in", content = @Content(
             mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ProblemDetail.class)))
     @ApiResponse(responseCode = "409", description = "Someone else changed the Pokémon since the given version", content = @Content(
             mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ProblemDetail.class)))
@@ -131,9 +138,14 @@ class CollectionController {
     }
 
     @DeleteMapping("/{id}")
+    @SecurityRequirement(name = "bearerAuth")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Remove a Pokémon from the collection")
+    @Operation(summary = "Remove a Pokémon from the collection", description = "Admins only.")
     @ApiResponse(responseCode = "204", description = "Removed")
+    @ApiResponse(responseCode = "401", description = "Not logged in", content = @Content(
+            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ProblemDetail.class)))
+    @ApiResponse(responseCode = "403", description = "Not an admin", content = @Content(
+            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ProblemDetail.class)))
     @ApiResponse(responseCode = "400", description = "The id is not a UUID", content = @Content(
             mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ProblemDetail.class)))
     @ApiResponse(responseCode = "404", description = "No Pokémon with that id in the collection", content = @Content(

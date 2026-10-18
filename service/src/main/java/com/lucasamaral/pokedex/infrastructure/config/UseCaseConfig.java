@@ -12,6 +12,10 @@ import com.lucasamaral.pokedex.application.collection.CollectionRepository;
 import com.lucasamaral.pokedex.application.collection.EditCollectionService;
 import com.lucasamaral.pokedex.application.collection.SyncPokemonService;
 import com.lucasamaral.pokedex.application.collection.SyncPokemonUseCase;
+import com.lucasamaral.pokedex.application.user.PasswordHasher;
+import com.lucasamaral.pokedex.application.user.TokenIssuer;
+import com.lucasamaral.pokedex.application.user.UserAccountService;
+import com.lucasamaral.pokedex.application.user.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -52,5 +56,11 @@ public class UseCaseConfig {
     @Bean
     EditCollectionService editCollectionService(CollectionRepository collectionRepository) {
         return new EditCollectionService(collectionRepository);
+    }
+
+    @Bean
+    UserAccountService userAccountService(UserRepository userRepository, PasswordHasher passwordHasher,
+                                          TokenIssuer tokenIssuer, Clock clock) {
+        return new UserAccountService(userRepository, passwordHasher, tokenIssuer, clock);
     }
 }

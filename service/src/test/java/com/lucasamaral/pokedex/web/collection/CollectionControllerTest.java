@@ -18,7 +18,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.lucasamaral.pokedex.infrastructure.security.SecurityConfig;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -40,8 +42,10 @@ import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 
 @WebMvcTest(CollectionController.class)
+@Import(SecurityConfig.class)
 class CollectionControllerTest {
 
     private static final String COLLECTION = "/api/v1/pokemon";
@@ -70,7 +74,7 @@ class CollectionControllerTest {
     void addsANewPokemonAndPointsToIt() {
         given(syncPokemon.sync("bulbasaur")).willReturn(new SyncResult(bulbasaur, true));
 
-        var response = mvc.post().uri(COLLECTION + "/sync")
+        var response = mvc.post().with(user()).uri(COLLECTION + "/sync")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"idOrName\": \"bulbasaur\"}");
 
@@ -84,7 +88,7 @@ class CollectionControllerTest {
     void answersOkWhenThePokemonWasAlreadyInTheCollection() {
         given(syncPokemon.sync("bulbasaur")).willReturn(new SyncResult(bulbasaur, false));
 
-        var response = mvc.post().uri(COLLECTION + "/sync")
+        var response = mvc.post().with(user()).uri(COLLECTION + "/sync")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"idOrName\": \"bulbasaur\"}");
 
@@ -94,7 +98,7 @@ class CollectionControllerTest {
     @ParameterizedTest
     @ValueSource(strings = {"{\"idOrName\": \"\"}", "{\"idOrName\": \"mew!\"}", "{}"})
     void rejectsAMissingOrMalformedNumberOrName(String body) {
-        var response = mvc.post().uri(COLLECTION + "/sync").contentType(MediaType.APPLICATION_JSON).content(body);
+        var response = mvc.post().with(user()).uri(COLLECTION + "/sync").contentType(MediaType.APPLICATION_JSON).content(body);
 
         assertThat(response).hasStatus(HttpStatus.BAD_REQUEST).hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
         assertThat(response).bodyJson().extractingPath("$.errors[0].field").isEqualTo("idOrName");
@@ -103,7 +107,7 @@ class CollectionControllerTest {
 
     @Test
     void rejectsABodyThatIsNotJson() {
-        var response = mvc.post().uri(COLLECTION + "/sync").contentType(MediaType.APPLICATION_JSON).content("bulbasaur")
+        var response = mvc.post().with(user()).uri(COLLECTION + "/sync").contentType(MediaType.APPLICATION_JSON).content("bulbasaur")
                 .exchange();
 
         assertThat(response).hasStatus(HttpStatus.BAD_REQUEST).hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
@@ -118,7 +122,7 @@ class CollectionControllerTest {
             "{\"version\": 0, \"localizedNames\": []}  | localizedNames | must be an object",
             "{\"version\": 0, \"nickname\": [\"Bulby\"]} | nickname       | must be text"})
     void namesTheFieldThatHasTheWrongType(String body, String field, String message) {
-        var response = mvc.put().uri(COLLECTION + "/{id}", bulbasaur.id())
+        var response = mvc.put().with(user()).uri(COLLECTION + "/{id}", bulbasaur.id())
                 .contentType(MediaType.APPLICATION_JSON).content(body).exchange();
 
         assertThat(response).hasStatus(HttpStatus.BAD_REQUEST).hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
@@ -132,7 +136,7 @@ class CollectionControllerTest {
     void answersNotFoundWhenPokeApiDoesNotKnowThePokemon() {
         given(syncPokemon.sync("missingno")).willThrow(new PokemonNotFoundException("missingno"));
 
-        var response = mvc.post().uri(COLLECTION + "/sync")
+        var response = mvc.post().with(user()).uri(COLLECTION + "/sync")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"idOrName\": \"missingno\"}");
 
@@ -144,7 +148,7 @@ class CollectionControllerTest {
     void answersServiceUnavailableWhenPokeApiIsDown() {
         given(syncPokemon.sync(any())).willThrow(new CatalogUnavailableException("down", new IOException("boom")));
 
-        var response = mvc.post().uri(COLLECTION + "/sync")
+        var response = mvc.post().with(user()).uri(COLLECTION + "/sync")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"idOrName\": \"bulbasaur\"}");
 
@@ -273,7 +277,7 @@ class CollectionControllerTest {
         var edited = new CustomFields("Bulby", "Our first starter", "Kanto", Map.of("pt-BR", "Bulbassauro"), Set.of("starter"));
         given(updatePokemon.update(bulbasaur.id(), 3, edited)).willReturn(bulbasaur.withCustomFields(edited));
 
-        var response = mvc.put().uri(COLLECTION + "/{id}", bulbasaur.id()).contentType(MediaType.APPLICATION_JSON).content(EDIT)
+        var response = mvc.put().with(user()).uri(COLLECTION + "/{id}", bulbasaur.id()).contentType(MediaType.APPLICATION_JSON).content(EDIT)
                 .exchange();
 
         assertThat(response).hasStatus(HttpStatus.OK);
@@ -286,7 +290,7 @@ class CollectionControllerTest {
     void clearsTheFieldsLeftOut() {
         given(updatePokemon.update(any(), anyLong(), any())).willReturn(bulbasaur.withCustomFields(CustomFields.empty()));
 
-        var response = mvc.put().uri(COLLECTION + "/{id}", bulbasaur.id())
+        var response = mvc.put().with(user()).uri(COLLECTION + "/{id}", bulbasaur.id())
                 .contentType(MediaType.APPLICATION_JSON).content("{\"version\": 0}");
 
         assertThat(response).hasStatus(HttpStatus.OK);
@@ -295,7 +299,7 @@ class CollectionControllerTest {
 
     @Test
     void requiresTheVersionTheEditStartedFrom() {
-        var response = mvc.put().uri(COLLECTION + "/{id}", bulbasaur.id())
+        var response = mvc.put().with(user()).uri(COLLECTION + "/{id}", bulbasaur.id())
                 .contentType(MediaType.APPLICATION_JSON).content("{\"nickname\": \"Bulby\"}");
 
         assertThat(response).hasStatus(HttpStatus.BAD_REQUEST);
@@ -305,7 +309,7 @@ class CollectionControllerTest {
 
     @Test
     void rejectsANicknameThatIsTooLong() {
-        var response = mvc.put().uri(COLLECTION + "/{id}", bulbasaur.id())
+        var response = mvc.put().with(user()).uri(COLLECTION + "/{id}", bulbasaur.id())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"version\": 0, \"nickname\": \"%s\"}".formatted("n".repeat(31)));
 
@@ -316,7 +320,7 @@ class CollectionControllerTest {
 
     @Test
     void rejectsAMalformedTag() {
-        var response = mvc.put().uri(COLLECTION + "/{id}", bulbasaur.id())
+        var response = mvc.put().with(user()).uri(COLLECTION + "/{id}", bulbasaur.id())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"version\": 0, \"tags\": [\"has space\"]}");
 
@@ -327,7 +331,7 @@ class CollectionControllerTest {
 
     @Test
     void rejectsAMalformedLanguageTag() {
-        var response = mvc.put().uri(COLLECTION + "/{id}", bulbasaur.id())
+        var response = mvc.put().with(user()).uri(COLLECTION + "/{id}", bulbasaur.id())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"version\": 0, \"localizedNames\": {\"pt_BR\": \"Bulbassauro\"}}");
 
@@ -337,7 +341,7 @@ class CollectionControllerTest {
 
     @Test
     void refusesToChangeDataThatComesFromPokeApi() {
-        var response = mvc.put().uri(COLLECTION + "/{id}", bulbasaur.id())
+        var response = mvc.put().with(user()).uri(COLLECTION + "/{id}", bulbasaur.id())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"version\": 0, \"name\": \"bulbasaurus\"}");
 
@@ -352,7 +356,7 @@ class CollectionControllerTest {
         given(updatePokemon.update(eq(bulbasaur.id()), eq(3L), any()))
                 .willThrow(new CollectedPokemonVersionConflictException(bulbasaur.id(), 3, 4));
 
-        var response = mvc.put().uri(COLLECTION + "/{id}", bulbasaur.id()).contentType(MediaType.APPLICATION_JSON).content(EDIT);
+        var response = mvc.put().with(user()).uri(COLLECTION + "/{id}", bulbasaur.id()).contentType(MediaType.APPLICATION_JSON).content(EDIT);
 
         assertThat(response).hasStatus(HttpStatus.CONFLICT).hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
         assertThat(response).bodyJson().extractingPath("$.title").isEqualTo("Pokémon changed since you loaded it");
@@ -363,13 +367,13 @@ class CollectionControllerTest {
     void answersNotFoundWhenEditingAPokemonThatIsNotInTheCollection() {
         given(updatePokemon.update(any(), anyLong(), any())).willThrow(new CollectedPokemonNotFoundException(bulbasaur.id()));
 
-        assertThat(mvc.put().uri(COLLECTION + "/{id}", bulbasaur.id()).contentType(MediaType.APPLICATION_JSON).content(EDIT))
+        assertThat(mvc.put().with(user()).uri(COLLECTION + "/{id}", bulbasaur.id()).contentType(MediaType.APPLICATION_JSON).content(EDIT))
                 .hasStatus(HttpStatus.NOT_FOUND);
     }
 
     @Test
     void removesAPokemonFromTheCollection() {
-        assertThat(mvc.delete().uri(COLLECTION + "/{id}", bulbasaur.id())).hasStatus(HttpStatus.NO_CONTENT);
+        assertThat(mvc.delete().with(admin()).uri(COLLECTION + "/{id}", bulbasaur.id())).hasStatus(HttpStatus.NO_CONTENT);
 
         verify(removePokemon).remove(bulbasaur.id());
     }
@@ -378,6 +382,15 @@ class CollectionControllerTest {
     void answersNotFoundWhenRemovingAPokemonThatIsNotInTheCollection() {
         willThrow(new CollectedPokemonNotFoundException(bulbasaur.id())).given(removePokemon).remove(bulbasaur.id());
 
-        assertThat(mvc.delete().uri(COLLECTION + "/{id}", bulbasaur.id())).hasStatus(HttpStatus.NOT_FOUND);
+        assertThat(mvc.delete().with(admin()).uri(COLLECTION + "/{id}", bulbasaur.id())).hasStatus(HttpStatus.NOT_FOUND);
+    }
+
+    /** Changes need a login; removing needs ADMIN. Who may do what is covered by RouteSecurityTest. */
+    private static org.springframework.test.web.servlet.request.RequestPostProcessor user() {
+        return jwt().authorities(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER"));
+    }
+
+    private static org.springframework.test.web.servlet.request.RequestPostProcessor admin() {
+        return jwt().authorities(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN"));
     }
 }
