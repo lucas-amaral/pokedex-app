@@ -25,6 +25,8 @@
             "time_of_day": "",
             "known_move": null,
             "known_move_type": null,
+            "relative_physical_stats": null,
+            "party_species": null,
             "is_default": true
           }
         ],
@@ -47,6 +49,8 @@
                 "time_of_day": "",
                 "known_move": null,
                 "known_move_type": null,
+                "relative_physical_stats": null,
+                "party_species": null,
                 "is_default": true
               }
             ],

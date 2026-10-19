@@ -17,6 +17,7 @@ import org.springframework.web.client.RestClient;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -116,9 +117,38 @@ class PokeApiCatalogAdapterDetailsTest {
     void keepsWhatTellsSimilarEvolutionsApart() {
         stubPokemon("eevee", "eevee", 67);
 
-        assertThat(evolutionOf("espeon")).isEqualTo(new EvolutionCondition("level-up", null, null, null, 160, "day", null, null));
-        assertThat(evolutionOf("umbreon")).isEqualTo(new EvolutionCondition("level-up", null, null, null, 160, "night", null, null));
-        assertThat(evolutionOf("sylveon")).isEqualTo(new EvolutionCondition("level-up", null, null, null, 160, null, null, "fairy"));
+        assertThat(evolutionOf("espeon")).isEqualTo(new EvolutionCondition("level-up", null, null, null, 160, "day", null, null, null, null));
+        assertThat(evolutionOf("umbreon")).isEqualTo(new EvolutionCondition("level-up", null, null, null, 160, "night", null, null, null, null));
+        assertThat(evolutionOf("sylveon")).isEqualTo(new EvolutionCondition("level-up", null, null, null, 160, null, null, "fairy", null, null));
+    }
+
+    /** All three evolve at level 20; only how Attack compares with Defense tells them apart, and 0 (equal) is a value. */
+    @Test
+    void tellsTheTyrogueEvolutionsApartByAttackAndDefense() {
+        stubPokemon("tyrogue", "tyrogue", 47);
+        var chain = adapter.findDetails("tyrogue").orElseThrow().evolutionChain();
+
+        assertThat(conditionOf(chain, "hitmonlee")).isEqualTo(new EvolutionCondition("level-up", 20, null, null, null, null, null, null, 1, null));
+        assertThat(conditionOf(chain, "hitmonchan").relativePhysicalStats()).isEqualTo(-1);
+        assertThat(conditionOf(chain, "hitmontop").relativePhysicalStats()).isZero();
+    }
+
+    @Test
+    void needsARemoraidInThePartyForMantine() {
+        stubPokemon("mantine", "mantine", 116);
+        var chain = adapter.findDetails("mantine").orElseThrow().evolutionChain();
+
+        assertThat(conditionOf(chain, "mantine")).isEqualTo(new EvolutionCondition("level-up", null, null, null, null, null, null, null, null, "remoraid"));
+    }
+
+    private static EvolutionCondition conditionOf(EvolutionNode stage, String species) {
+        if (stage.name().equals(species)) {
+            return stage.condition();
+        }
+        return stage.evolvesTo().stream()
+                .map(next -> conditionOf(next, species))
+                .filter(Objects::nonNull)
+                .findFirst().orElse(null);
     }
 
     @Test

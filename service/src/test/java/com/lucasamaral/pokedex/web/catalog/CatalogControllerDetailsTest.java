@@ -85,7 +85,7 @@ class CatalogControllerDetailsTest {
 
     @Test
     void saysWhetherItIsTheDefaultFormAndWhatEachEvolutionNeeds() {
-        var espeon = new EvolutionNode(196, "espeon", null, new EvolutionCondition("level-up", null, null, "soothe-bell", 160, "day", "psychic", "psychic"), List.of());
+        var espeon = new EvolutionNode(196, "espeon", null, new EvolutionCondition("level-up", null, null, "soothe-bell", 160, "day", "psychic", "psychic", 1, "remoraid"), List.of());
         var eevee = new EvolutionNode(133, "eevee", null, null, List.of(espeon));
         given(getPokemonDetails.getDetails("eevee-starter"))
                 .willReturn(aPokemonDetails().withName("eevee-starter").withSpeciesName("eevee").withDefaultForm(false).withEvolutionChain(eevee).build());
@@ -100,7 +100,8 @@ class CatalogControllerDetailsTest {
                     "evolvesTo": [{
                       "condition": {
                         "trigger": "level-up", "minLevel": null, "item": null, "heldItem": "soothe-bell", "minHappiness": 160,
-                        "timeOfDay": "day", "knownMove": "psychic", "knownMoveType": "psychic"
+                        "timeOfDay": "day", "knownMove": "psychic", "knownMoveType": "psychic",
+                        "relativePhysicalStats": 1, "partySpecies": "remoraid"
                       }
                     }]
                   }

@@ -14,6 +14,9 @@ import static com.lucasamaral.pokedex.domain.pokemon.Preconditions.requireNonBla
  * @param timeOfDay     "day" or "night"
  * @param knownMove     a move the Pokémon must know
  * @param knownMoveType the type of a move it must know (Sylveon: "fairy")
+ * @param relativePhysicalStats how Attack must compare with Defense: 1 greater, -1 smaller, 0 equal (Tyrogue's three
+ *                              evolutions differ only in this)
+ * @param partySpecies  a species that must be in the party (Mantine: "remoraid")
  */
 public record EvolutionCondition(
         String trigger,
@@ -23,7 +26,9 @@ public record EvolutionCondition(
         Integer minHappiness,
         String timeOfDay,
         String knownMove,
-        String knownMoveType) {
+        String knownMoveType,
+        Integer relativePhysicalStats,
+        String partySpecies) {
 
     public EvolutionCondition {
         requireNonBlank(trigger, "Evolution trigger must not be blank");
@@ -31,6 +36,6 @@ public record EvolutionCondition(
 
     /** The common case: a level or an item, nothing else. */
     public EvolutionCondition(String trigger, Integer minLevel, String item) {
-        this(trigger, minLevel, item, null, null, null, null, null);
+        this(trigger, minLevel, item, null, null, null, null, null, null, null);
     }
 }

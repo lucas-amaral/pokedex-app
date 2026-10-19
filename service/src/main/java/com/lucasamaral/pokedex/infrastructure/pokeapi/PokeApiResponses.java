@@ -82,6 +82,8 @@ final class PokeApiResponses {
             @JsonProperty("time_of_day") String timeOfDay,
             @JsonProperty("known_move") NamedResource knownMove,
             @JsonProperty("known_move_type") NamedResource knownMoveType,
+            @JsonProperty("relative_physical_stats") Integer relativePhysicalStats,
+            @JsonProperty("party_species") NamedResource partySpecies,
             @JsonProperty("is_default") Boolean isDefault) {
     }
 }

@@ -51,6 +51,8 @@ describe('formatEvolutionCondition', () => {
     timeOfDay: null,
     knownMove: null,
     knownMoveType: null,
+    relativePhysicalStats: null,
+    partySpecies: null,
     ...fields,
   })
 
@@ -73,5 +75,15 @@ describe('formatEvolutionCondition', () => {
     )
     expect(formatEvolutionCondition(condition({ trigger: 'trade', heldItem: 'metal-coat' }))).toBe('Trade · Holding Metal Coat')
     expect(formatEvolutionCondition(condition({ trigger: 'level-up', knownMove: 'ancient-power' }))).toBe('Level Up · Knows Ancient Power')
+  })
+
+  it('tells the Tyrogue evolutions apart by Attack and Defense, equal included', () => {
+    expect(formatEvolutionCondition(condition({ trigger: 'level-up', minLevel: 20, relativePhysicalStats: 1 }))).toBe('Lv. 20 · Attack > Defense')
+    expect(formatEvolutionCondition(condition({ trigger: 'level-up', minLevel: 20, relativePhysicalStats: -1 }))).toBe('Lv. 20 · Attack < Defense')
+    expect(formatEvolutionCondition(condition({ trigger: 'level-up', minLevel: 20, relativePhysicalStats: 0 }))).toBe('Lv. 20 · Attack = Defense')
+  })
+
+  it('names a Pokémon that must be in the party', () => {
+    expect(formatEvolutionCondition(condition({ trigger: 'level-up', partySpecies: 'remoraid' }))).toBe('Level Up · Remoraid in the party')
   })
 })

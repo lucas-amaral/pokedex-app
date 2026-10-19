@@ -104,7 +104,7 @@ class PokeApiMapperTest {
 
     private static PokeApiResponses.EvolutionDetail detail(String trigger, Integer minLevel, String item, String timeOfDay) {
         return new PokeApiResponses.EvolutionDetail(new PokeApiResponses.NamedResource(trigger, null), minLevel,
-                item == null ? null : new PokeApiResponses.NamedResource(item, null), null, null, timeOfDay, null, null, null);
+                item == null ? null : new PokeApiResponses.NamedResource(item, null), null, null, timeOfDay, null, null, null, null, null);
     }
 
     @Test

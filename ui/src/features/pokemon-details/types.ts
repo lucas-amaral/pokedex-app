@@ -42,4 +42,7 @@ export interface EvolutionCondition {
   timeOfDay: string | null
   knownMove: string | null
   knownMoveType: string | null
+  /** How Attack must compare with Defense: 1 greater, -1 smaller, 0 equal. */
+  relativePhysicalStats: number | null
+  partySpecies: string | null
 }

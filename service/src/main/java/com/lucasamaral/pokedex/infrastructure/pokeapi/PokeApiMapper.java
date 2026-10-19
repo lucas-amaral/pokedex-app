@@ -160,7 +160,9 @@ final class PokeApiMapper {
                 detail.minHappiness(),
                 detail.timeOfDay() == null || detail.timeOfDay().isBlank() ? null : detail.timeOfDay(),
                 nameOf(detail.knownMove()),
-                nameOf(detail.knownMoveType()));
+                nameOf(detail.knownMoveType()),
+                detail.relativePhysicalStats(),
+                nameOf(detail.partySpecies()));
     }
 
     private static String nameOf(PokeApiResponses.NamedResource resource) {

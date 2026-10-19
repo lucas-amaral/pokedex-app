@@ -1,0 +1,40 @@
+{
+  "id": 116,
+  "chain": {
+    "species": {
+      "name": "mantyke",
+      "url": "https://pokeapi.co/api/v2/pokemon-species/458/"
+    },
+    "evolution_details": [],
+    "evolves_to": [
+      {
+        "species": {
+          "name": "mantine",
+          "url": "https://pokeapi.co/api/v2/pokemon-species/226/"
+        },
+        "evolution_details": [
+          {
+            "trigger": {
+              "name": "level-up",
+              "url": "https://pokeapi.co/api/v2/evolution-trigger/1/"
+            },
+            "min_level": null,
+            "item": null,
+            "held_item": null,
+            "min_happiness": null,
+            "time_of_day": "",
+            "known_move": null,
+            "known_move_type": null,
+            "relative_physical_stats": null,
+            "party_species": {
+              "name": "remoraid",
+              "url": "https://pokeapi.co/api/v2/pokemon-species/223/"
+            },
+            "is_default": true
+          }
+        ],
+        "evolves_to": []
+      }
+    ]
+  }
+}

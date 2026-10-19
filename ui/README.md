@@ -134,7 +134,7 @@ sends the `version` it was loaded with; if someone else saved in between, the se
 
 ## Testing
 
-102 tests in 13 files; run them with `npm test`.
+104 tests in 13 files; run them with `npm test`.
 
 - **Vitest** runs the tests in a simulated browser (jsdom).
 - **Testing Library** queries the page the way a user would: by role, label and visible text.

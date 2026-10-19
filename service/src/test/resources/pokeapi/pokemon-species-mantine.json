@@ -1,0 +1,40 @@
+{
+  "id": 226,
+  "name": "mantine",
+  "genera": [
+    {
+      "genus": "Kite Pokémon",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      }
+    }
+  ],
+  "flavor_text_entries": [
+    {
+      "flavor_text": "As it majestically swims, it doesn’t care if\nRemoraid attach to it to scavenge for its leftovers.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    },
+    {
+      "flavor_text": "This calm and gentle Pokémon swims gracefully through the sea.\nAfter building speed, it can leap out of the water. It is often\nmisidentified as a bird Pokémon due to this behavior.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "legends-arceus",
+        "url": "https://pokeapi.co/api/v2/version/39/"
+      }
+    }
+  ],
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/116/"
+  }
+}

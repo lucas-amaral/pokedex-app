@@ -10,6 +10,8 @@ export function evolutionCondition(fields: Partial<EvolutionCondition> & { trigg
     timeOfDay: null,
     knownMove: null,
     knownMoveType: null,
+    relativePhysicalStats: null,
+    partySpecies: null,
     ...fields,
   }
 }

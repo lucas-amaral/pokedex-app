@@ -59,11 +59,14 @@ public record PokemonDetailsResponse(
             Integer minHappiness,
             String timeOfDay,
             String knownMove,
-            String knownMoveType) {
+            String knownMoveType,
+            Integer relativePhysicalStats,
+            String partySpecies) {
 
         static ConditionResponse from(EvolutionCondition condition) {
             return new ConditionResponse(condition.trigger(), condition.minLevel(), condition.item(), condition.heldItem(),
-                    condition.minHappiness(), condition.timeOfDay(), condition.knownMove(), condition.knownMoveType());
+                    condition.minHappiness(), condition.timeOfDay(), condition.knownMove(), condition.knownMoveType(),
+                    condition.relativePhysicalStats(), condition.partySpecies());
         }
     }
 

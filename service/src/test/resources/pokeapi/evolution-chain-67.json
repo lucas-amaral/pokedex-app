@@ -28,6 +28,8 @@
             "time_of_day": "",
             "known_move": null,
             "known_move_type": null,
+            "relative_physical_stats": null,
+            "party_species": null,
             "is_default": true
           }
         ],
@@ -54,6 +56,8 @@
             "time_of_day": "",
             "known_move": null,
             "known_move_type": null,
+            "relative_physical_stats": null,
+            "party_species": null,
             "is_default": true
           }
         ],
@@ -80,6 +84,8 @@
             "time_of_day": "",
             "known_move": null,
             "known_move_type": null,
+            "relative_physical_stats": null,
+            "party_species": null,
             "is_default": true
           }
         ],
@@ -103,6 +109,8 @@
             "time_of_day": "day",
             "known_move": null,
             "known_move_type": null,
+            "relative_physical_stats": null,
+            "party_species": null,
             "is_default": true
           }
         ],
@@ -126,6 +134,8 @@
             "time_of_day": "night",
             "known_move": null,
             "known_move_type": null,
+            "relative_physical_stats": null,
+            "party_species": null,
             "is_default": true
           }
         ],
@@ -149,6 +159,8 @@
             "time_of_day": "",
             "known_move": null,
             "known_move_type": null,
+            "relative_physical_stats": null,
+            "party_species": null,
             "is_default": false
           },
           {
@@ -163,6 +175,8 @@
             "time_of_day": "",
             "known_move": null,
             "known_move_type": null,
+            "relative_physical_stats": null,
+            "party_species": null,
             "is_default": false
           },
           {
@@ -177,6 +191,8 @@
             "time_of_day": "",
             "known_move": null,
             "known_move_type": null,
+            "relative_physical_stats": null,
+            "party_species": null,
             "is_default": false
           },
           {
@@ -194,6 +210,8 @@
             "time_of_day": "",
             "known_move": null,
             "known_move_type": null,
+            "relative_physical_stats": null,
+            "party_species": null,
             "is_default": true
           },
           {
@@ -208,6 +226,8 @@
             "time_of_day": "",
             "known_move": null,
             "known_move_type": null,
+            "relative_physical_stats": null,
+            "party_species": null,
             "is_default": false
           },
           {
@@ -222,6 +242,8 @@
             "time_of_day": "",
             "known_move": null,
             "known_move_type": null,
+            "relative_physical_stats": null,
+            "party_species": null,
             "is_default": false
           }
         ],
@@ -245,6 +267,8 @@
             "time_of_day": "",
             "known_move": null,
             "known_move_type": null,
+            "relative_physical_stats": null,
+            "party_species": null,
             "is_default": false
           },
           {
@@ -259,6 +283,8 @@
             "time_of_day": "",
             "known_move": null,
             "known_move_type": null,
+            "relative_physical_stats": null,
+            "party_species": null,
             "is_default": false
           },
           {
@@ -273,6 +299,8 @@
             "time_of_day": "",
             "known_move": null,
             "known_move_type": null,
+            "relative_physical_stats": null,
+            "party_species": null,
             "is_default": false
           },
           {
@@ -290,6 +318,8 @@
             "time_of_day": "",
             "known_move": null,
             "known_move_type": null,
+            "relative_physical_stats": null,
+            "party_species": null,
             "is_default": true
           },
           {
@@ -304,6 +334,8 @@
             "time_of_day": "",
             "known_move": null,
             "known_move_type": null,
+            "relative_physical_stats": null,
+            "party_species": null,
             "is_default": false
           },
           {
@@ -318,6 +350,8 @@
             "time_of_day": "",
             "known_move": null,
             "known_move_type": null,
+            "relative_physical_stats": null,
+            "party_species": null,
             "is_default": false
           }
         ],
@@ -344,6 +378,8 @@
               "name": "fairy",
               "url": "https://pokeapi.co/api/v2/type/18/"
             },
+            "relative_physical_stats": null,
+            "party_species": null,
             "is_default": false
           },
           {
@@ -361,6 +397,8 @@
               "name": "fairy",
               "url": "https://pokeapi.co/api/v2/type/18/"
             },
+            "relative_physical_stats": null,
+            "party_species": null,
             "is_default": true
           }
         ],

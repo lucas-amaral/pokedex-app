@@ -53,8 +53,13 @@ export function formatEvolutionCondition(condition: EvolutionCondition): string 
   if (condition.timeOfDay !== null) parts.push(formatPokemonName(condition.timeOfDay))
   if (condition.knownMove !== null) parts.push(`Knows ${formatPokemonName(condition.knownMove)}`)
   if (condition.knownMoveType !== null) parts.push(`Knows a ${formatPokemonName(condition.knownMoveType)} move`)
+  if (condition.relativePhysicalStats !== null) parts.push(ATTACK_VERSUS_DEFENSE[Math.sign(condition.relativePhysicalStats)])
+  if (condition.partySpecies !== null) parts.push(`${formatPokemonName(condition.partySpecies)} in the party`)
   return parts.join(' · ')
 }
+
+/** Tyrogue's evolutions differ only in this; 0 (equal) is a value, not "no condition". */
+const ATTACK_VERSUS_DEFENSE: Record<number, string> = { 1: 'Attack > Defense', [-1]: 'Attack < Defense', 0: 'Attack = Defense' }
 
 function mainRequirement(condition: EvolutionCondition): string {
   if (condition.minLevel !== null) return `Lv. ${condition.minLevel}`
