@@ -27,7 +27,8 @@ final class PokeApiResponses {
             Sprites sprites,
             List<PokemonAbility> abilities,
             List<PokemonType> types,
-            List<PokemonStat> stats) {
+            List<PokemonStat> stats,
+            @JsonProperty("is_default") Boolean isDefault) {
     }
 
     record Sprites(@JsonProperty("front_default") String frontDefault, OtherSprites other) {
@@ -71,6 +72,16 @@ final class PokeApiResponses {
             @JsonProperty("evolves_to") List<ChainLink> evolvesTo) {
     }
 
-    record EvolutionDetail(NamedResource trigger, @JsonProperty("min_level") Integer minLevel, NamedResource item) {
+    /** One way to evolve; PokeAPI lists one per game and marks the current one with {@code is_default}. */
+    record EvolutionDetail(
+            NamedResource trigger,
+            @JsonProperty("min_level") Integer minLevel,
+            NamedResource item,
+            @JsonProperty("held_item") NamedResource heldItem,
+            @JsonProperty("min_happiness") Integer minHappiness,
+            @JsonProperty("time_of_day") String timeOfDay,
+            @JsonProperty("known_move") NamedResource knownMove,
+            @JsonProperty("known_move_type") NamedResource knownMoveType,
+            @JsonProperty("is_default") Boolean isDefault) {
     }
 }

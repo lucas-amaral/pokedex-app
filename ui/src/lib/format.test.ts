@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import type { EvolutionCondition } from '../features/pokemon-details/types'
 import { formatDexNumber, formatEvolutionCondition, formatHeight, formatPokemonName, formatStatName, formatWeight } from './format'
 
 describe('formatPokemonName', () => {
@@ -42,10 +43,35 @@ describe('formatStatName', () => {
 })
 
 describe('formatEvolutionCondition', () => {
+  const condition = (fields: Partial<EvolutionCondition> & { trigger: string }): EvolutionCondition => ({
+    minLevel: null,
+    item: null,
+    heldItem: null,
+    minHappiness: null,
+    timeOfDay: null,
+    knownMove: null,
+    knownMoveType: null,
+    ...fields,
+  })
+
   it('describes how a Pokémon evolves', () => {
-    expect(formatEvolutionCondition({ trigger: 'level-up', minLevel: 16, item: null })).toBe('Lv. 16')
-    expect(formatEvolutionCondition({ trigger: 'use-item', minLevel: null, item: 'water-stone' })).toBe('Water Stone')
-    expect(formatEvolutionCondition({ trigger: 'level-up', minLevel: null, item: null })).toBe('Level Up')
-    expect(formatEvolutionCondition({ trigger: 'trade', minLevel: null, item: null })).toBe('Trade')
+    expect(formatEvolutionCondition(condition({ trigger: 'level-up', minLevel: 16 }))).toBe('Lv. 16')
+    expect(formatEvolutionCondition(condition({ trigger: 'use-item', item: 'water-stone' }))).toBe('Water Stone')
+    expect(formatEvolutionCondition(condition({ trigger: 'level-up' }))).toBe('Level Up')
+    expect(formatEvolutionCondition(condition({ trigger: 'trade' }))).toBe('Trade')
+  })
+
+  it('adds what tells similar evolutions apart', () => {
+    expect(formatEvolutionCondition(condition({ trigger: 'level-up', minHappiness: 160, timeOfDay: 'day' }))).toBe(
+      'Level Up · Friendship 160+ · Day',
+    )
+    expect(formatEvolutionCondition(condition({ trigger: 'level-up', minHappiness: 160, timeOfDay: 'night' }))).toBe(
+      'Level Up · Friendship 160+ · Night',
+    )
+    expect(formatEvolutionCondition(condition({ trigger: 'level-up', minHappiness: 160, knownMoveType: 'fairy' }))).toBe(
+      'Level Up · Friendship 160+ · Knows a Fairy move',
+    )
+    expect(formatEvolutionCondition(condition({ trigger: 'trade', heldItem: 'metal-coat' }))).toBe('Trade · Holding Metal Coat')
+    expect(formatEvolutionCondition(condition({ trigger: 'level-up', knownMove: 'ancient-power' }))).toBe('Level Up · Knows Ancient Power')
   })
 })

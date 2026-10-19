@@ -19,7 +19,13 @@
               "url": "https://pokeapi.co/api/v2/evolution-trigger/1/"
             },
             "min_level": 16,
-            "item": null
+            "item": null,
+            "held_item": null,
+            "min_happiness": null,
+            "time_of_day": "",
+            "known_move": null,
+            "known_move_type": null,
+            "is_default": true
           }
         ],
         "evolves_to": [
@@ -35,7 +41,13 @@
                   "url": "https://pokeapi.co/api/v2/evolution-trigger/1/"
                 },
                 "min_level": 32,
-                "item": null
+                "item": null,
+                "held_item": null,
+                "min_happiness": null,
+                "time_of_day": "",
+                "known_move": null,
+                "known_move_type": null,
+                "is_default": true
               }
             ],
             "evolves_to": []

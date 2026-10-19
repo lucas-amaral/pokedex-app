@@ -1,3 +1,5 @@
+import type { EvolutionCondition } from '../features/pokemon-details/types'
+
 /** "mr-mime" → "Mr Mime". PokeAPI names are lowercase and hyphenated. */
 export function formatPokemonName(name: string): string {
   return name
@@ -40,7 +42,21 @@ export function formatStatName(name: string): string {
 }
 
 /** How the previous stage evolves: "Lv. 16", "Water Stone", "Trade", "Level Up". */
-export function formatEvolutionCondition(condition: { trigger: string; minLevel: number | null; item: string | null }): string {
+/**
+ * How a stage is reached: the level, the item or the trigger, then whatever else it needs, so Espeon
+ * ("Level Up · Friendship 160+ · Day") and Umbreon ("... · Night") read differently.
+ */
+export function formatEvolutionCondition(condition: EvolutionCondition): string {
+  const parts = [mainRequirement(condition)]
+  if (condition.heldItem !== null) parts.push(`Holding ${formatPokemonName(condition.heldItem)}`)
+  if (condition.minHappiness !== null) parts.push(`Friendship ${condition.minHappiness}+`)
+  if (condition.timeOfDay !== null) parts.push(formatPokemonName(condition.timeOfDay))
+  if (condition.knownMove !== null) parts.push(`Knows ${formatPokemonName(condition.knownMove)}`)
+  if (condition.knownMoveType !== null) parts.push(`Knows a ${formatPokemonName(condition.knownMoveType)} move`)
+  return parts.join(' · ')
+}
+
+function mainRequirement(condition: EvolutionCondition): string {
   if (condition.minLevel !== null) return `Lv. ${condition.minLevel}`
   if (condition.item !== null) return formatPokemonName(condition.item)
   return formatPokemonName(condition.trigger)

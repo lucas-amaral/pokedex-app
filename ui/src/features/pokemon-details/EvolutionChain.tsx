@@ -7,18 +7,27 @@ interface EvolutionChainProps {
   chain: EvolutionNode
   /** Species of the Pokémon on screen; an alternate form highlights its species. */
   currentSpecies: string
+  /** Name of the Pokémon on screen when it is an alternate form, which evolves as its species does. */
+  alternateForm?: string
 }
 
 /**
  * Draws the evolution tree recursively: each stage, then a column with every branch it can evolve into.
  * Stages stack vertically on phones and run left to right on wider screens.
  */
-export function EvolutionChain({ chain, currentSpecies }: EvolutionChainProps) {
+export function EvolutionChain({ chain, currentSpecies, alternateForm }: EvolutionChainProps) {
+  const species = formatPokemonName(currentSpecies)
   return (
     <section aria-labelledby="evolution-heading" className="space-y-3">
       <h2 id="evolution-heading" className="font-semibold">
         Evolution chain
       </h2>
+      {alternateForm && (
+        <p role="note" className="rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-600">
+          {formatPokemonName(alternateForm)} is an alternate form of {species}. Evolution belongs to the species, so this is
+          the {species} chain.
+        </p>
+      )}
       <Stage node={chain} currentSpecies={currentSpecies} />
     </section>
   )
@@ -36,7 +45,7 @@ function Stage({ node, currentSpecies }: { node: EvolutionNode; currentSpecies: 
         <StageLink node={node} isCurrent={node.name === currentSpecies} />
         <ul className="grid grid-cols-2 gap-x-2 gap-y-3 sm:grid-cols-4">
           {node.evolvesTo.map((next) => (
-            <li key={next.speciesId} className="flex flex-col items-center gap-1">
+            <li key={next.speciesId} className="flex flex-col items-center justify-end gap-1">
               <Condition node={next} arrow="↓" />
               <Stage node={next} currentSpecies={currentSpecies} />
             </li>

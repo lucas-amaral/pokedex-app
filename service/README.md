@@ -48,7 +48,7 @@ it with PostgreSQL and the UI.
 `build` compiles, runs every test and writes the coverage report to `build/reports/jacoco/test/html/index.html`.
 To run tests only: `./gradlew test`.
 
-308 tests; JaCoCo reports 96% of lines covered, and 97 to 100% in `domain` and `application`.
+316 tests; JaCoCo reports 96% of lines covered, and 97 to 100% in `domain` and `application`.
 
 | Kind | Tooling | Example |
 | --- | --- | --- |
@@ -127,8 +127,11 @@ curl 'http://localhost:8080/api/v1/catalog/pokemon?page=0&size=2'
 ```
 
 `name` is the Pokémon itself and can be an alternate form (`raichu-alola`); `speciesName` is its species (`raichu`), as named in
-the evolution chain. The detail view returns the evolution chain as a tree: each stage lists the species it can evolve into and the
-condition (`trigger`, `minLevel`, `item`) to get there. Eevee is shown with 2 of its 8 branches.
+the evolution chain, and `defaultForm` is `false` for an alternate form (partner, regional, Mega...). PokeAPI defines evolution per
+species, so an alternate form gets its species' chain. The chain is a tree: each stage lists the species it can evolve into and the
+condition to get there: `trigger`, plus whichever of `minLevel`, `item`, `heldItem`, `minHappiness`, `timeOfDay`, `knownMove` and
+`knownMoveType` it needs (the others are `null`). PokeAPI lists one way per game; the one it marks as default (today's) is shown,
+so Leafeon evolves with a Leaf Stone rather than near Diamond/Pearl's moss rock. Eevee is shown with 2 of its 8 branches.
 
 ```bash
 curl 'http://localhost:8080/api/v1/catalog/pokemon/eevee'
@@ -201,23 +204,34 @@ curl 'http://localhost:8080/api/v1/catalog/pokemon/eevee'
         "condition": {
           "trigger": "use-item",
           "minLevel": null,
-          "item": "water-stone"
+          "item": "water-stone",
+          "heldItem": null,
+          "minHappiness": null,
+          "timeOfDay": null,
+          "knownMove": null,
+          "knownMoveType": null
         },
         "evolvesTo": []
       },
       {
-        "speciesId": 135,
-        "name": "jolteon",
-        "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/135.png",
+        "speciesId": 196,
+        "name": "espeon",
+        "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/196.png",
         "condition": {
-          "trigger": "use-item",
+          "trigger": "level-up",
           "minLevel": null,
-          "item": "thunder-stone"
+          "item": null,
+          "heldItem": null,
+          "minHappiness": 160,
+          "timeOfDay": "day",
+          "knownMove": null,
+          "knownMoveType": null
         },
         "evolvesTo": []
       }
     ]
-  }
+  },
+  "defaultForm": true
 }
 ```
 

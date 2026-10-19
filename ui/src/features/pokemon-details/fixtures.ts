@@ -1,4 +1,18 @@
-import type { PokemonDetails } from './types'
+import type { EvolutionCondition, PokemonDetails } from './types'
+
+/** A condition with only the fields a test cares about; the service sends the rest as null. */
+export function evolutionCondition(fields: Partial<EvolutionCondition> & { trigger: string }): EvolutionCondition {
+  return {
+    minLevel: null,
+    item: null,
+    heldItem: null,
+    minHappiness: null,
+    timeOfDay: null,
+    knownMove: null,
+    knownMoveType: null,
+    ...fields,
+  }
+}
 
 const SPRITES = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'
 
@@ -6,6 +20,7 @@ export const bulbasaurDetails: PokemonDetails = {
   id: 1,
   name: 'bulbasaur',
   speciesName: 'bulbasaur',
+  defaultForm: true,
   artworkUrl: `${SPRITES}other/official-artwork/1.png`,
   category: 'Seed Pokémon',
   description: 'While it is young, it uses the nutrients that are stored in the seed on its back in order to grow.',
@@ -34,13 +49,13 @@ export const bulbasaurDetails: PokemonDetails = {
         speciesId: 2,
         name: 'ivysaur',
         spriteUrl: `${SPRITES}2.png`,
-        condition: { trigger: 'level-up', minLevel: 16, item: null },
+        condition: evolutionCondition({ trigger: 'level-up', minLevel: 16 }),
         evolvesTo: [
           {
             speciesId: 3,
             name: 'venusaur',
             spriteUrl: `${SPRITES}3.png`,
-            condition: { trigger: 'level-up', minLevel: 32, item: null },
+            condition: evolutionCondition({ trigger: 'level-up', minLevel: 32 }),
             evolvesTo: [],
           },
         ],
@@ -62,9 +77,9 @@ export const eeveeDetails: PokemonDetails = {
     spriteUrl: `${SPRITES}133.png`,
     condition: null,
     evolvesTo: [
-      { speciesId: 134, name: 'vaporeon', spriteUrl: `${SPRITES}134.png`, condition: { trigger: 'use-item', minLevel: null, item: 'water-stone' }, evolvesTo: [] },
-      { speciesId: 135, name: 'jolteon', spriteUrl: `${SPRITES}135.png`, condition: { trigger: 'use-item', minLevel: null, item: 'thunder-stone' }, evolvesTo: [] },
-      { speciesId: 196, name: 'espeon', spriteUrl: `${SPRITES}196.png`, condition: { trigger: 'level-up', minLevel: null, item: null }, evolvesTo: [] },
+      { speciesId: 134, name: 'vaporeon', spriteUrl: `${SPRITES}134.png`, condition: evolutionCondition({ trigger: 'use-item', item: 'water-stone' }), evolvesTo: [] },
+      { speciesId: 135, name: 'jolteon', spriteUrl: `${SPRITES}135.png`, condition: evolutionCondition({ trigger: 'use-item', item: 'thunder-stone' }), evolvesTo: [] },
+      { speciesId: 196, name: 'espeon', spriteUrl: `${SPRITES}196.png`, condition: evolutionCondition({ trigger: 'level-up', minHappiness: 160, timeOfDay: 'day' }), evolvesTo: [] },
     ],
   },
 }
@@ -75,6 +90,7 @@ export const alolanRaichuDetails: PokemonDetails = {
   id: 10100,
   name: 'raichu-alola',
   speciesName: 'raichu',
+  defaultForm: false,
   types: ['electric', 'psychic'],
   evolutionChain: {
     speciesId: 172,
@@ -86,9 +102,9 @@ export const alolanRaichuDetails: PokemonDetails = {
         speciesId: 25,
         name: 'pikachu',
         spriteUrl: `${SPRITES}25.png`,
-        condition: { trigger: 'level-up', minLevel: null, item: null },
+        condition: evolutionCondition({ trigger: 'level-up', minHappiness: 220 }),
         evolvesTo: [
-          { speciesId: 26, name: 'raichu', spriteUrl: `${SPRITES}26.png`, condition: { trigger: 'use-item', minLevel: null, item: 'thunder-stone' }, evolvesTo: [] },
+          { speciesId: 26, name: 'raichu', spriteUrl: `${SPRITES}26.png`, condition: evolutionCondition({ trigger: 'use-item', item: 'thunder-stone' }), evolvesTo: [] },
         ],
       },
     ],

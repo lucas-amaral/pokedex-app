@@ -161,5 +161,5 @@ runs all tests and writes a JaCoCo coverage report to
 
 | Part | Tests | Notes |
 | --- | --- | --- |
-| Service | 308 | 96% of lines covered; 97 to 100% in `domain` and `application` |
-| UI | 98 | Every screen tested as a user would use it, against a fake API |
+| Service | 316 | 96% of lines covered; 97 to 100% in `domain` and `application` |
+| UI | 102 | Every screen tested as a user would use it, against a fake API |

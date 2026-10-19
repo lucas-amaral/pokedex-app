@@ -1,6 +1,7 @@
 {
   "id": 1,
   "name": "bulbasaur",
+  "is_default": true,
   "height": 7,
   "weight": 69,
   "species": {

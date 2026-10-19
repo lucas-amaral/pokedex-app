@@ -121,7 +121,11 @@ function Details({ pokemon }: { pokemon: PokemonDetails }) {
           <StatBars stats={pokemon.stats} />
         </section>
         <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <EvolutionChain chain={pokemon.evolutionChain} currentSpecies={pokemon.speciesName} />
+          <EvolutionChain
+            chain={pokemon.evolutionChain}
+            currentSpecies={pokemon.speciesName}
+            alternateForm={pokemon.defaultForm ? undefined : pokemon.name}
+          />
         </div>
       </div>
     </article>

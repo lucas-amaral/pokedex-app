@@ -50,7 +50,7 @@ record SnapshotFile(String source, Instant exportedAt, List<Entry> pokemon) {
             var aloneInItsChain = new EvolutionNode(id, speciesName, spriteUrl, null, List.of());
             return new PokemonDetails(id, name, speciesName, spriteUrl, artworkUrl, category, description,
                     Height.ofDecimeters(heightDecimeters), Weight.ofHectograms(weightHectograms), types, abilities, stats,
-                    aloneInItsChain);
+                    aloneInItsChain, true);
         }
     }
 }

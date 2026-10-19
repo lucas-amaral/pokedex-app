@@ -73,6 +73,32 @@ describe('PokemonDetailsPage', () => {
     expect(within(chain).getByRole('link', { name: /Pikachu/ })).not.toHaveAttribute('aria-current')
   })
 
+  it('explains that an alternate form follows its species’ evolution', async () => {
+    respondWith(alolanRaichuDetails)
+    renderRoute('/pokemon/raichu-alola')
+
+    const chain = await screen.findByRole('region', { name: 'Evolution chain' })
+    expect(within(chain).getByRole('note')).toHaveTextContent(
+      'Raichu Alola is an alternate form of Raichu. Evolution belongs to the species, so this is the Raichu chain.',
+    )
+  })
+
+  it('adds no note for the default form', async () => {
+    respondWith(bulbasaurDetails)
+    renderRoute('/pokemon/bulbasaur')
+
+    const chain = await screen.findByRole('region', { name: 'Evolution chain' })
+    expect(within(chain).queryByRole('note')).not.toBeInTheDocument()
+  })
+
+  it('tells apart evolutions that need more than a level', async () => {
+    respondWith(eeveeDetails)
+    renderRoute('/pokemon/eevee')
+
+    const chain = await screen.findByRole('region', { name: 'Evolution chain' })
+    expect(chain).toHaveTextContent('Level Up · Friendship 160+ · Day')
+  })
+
   it('names the browser tab after the Pokémon', async () => {
     respondWith(bulbasaurDetails)
     renderRoute('/pokemon/bulbasaur')

@@ -15,6 +15,8 @@ import static com.lucasamaral.pokedex.domain.pokemon.Preconditions.requirePositi
  * @param artworkUrl  official artwork; {@code null} when PokeAPI has none
  * @param category    species genus such as "Seed Pokémon"; {@code null} when PokeAPI has none
  * @param description English Pokédex entry; {@code null} when PokeAPI has none
+ * @param defaultForm {@code false} for an alternate form (a partner, regional, Mega or Gigantamax form); its evolution
+ *                    chain is still the species', since PokeAPI defines evolution per species
  */
 public record PokemonDetails(
         int id,
@@ -29,7 +31,8 @@ public record PokemonDetails(
         List<String> types,
         List<Ability> abilities,
         List<BaseStat> stats,
-        EvolutionNode evolutionChain) {
+        EvolutionNode evolutionChain,
+        boolean defaultForm) {
 
     public PokemonDetails {
         requirePositive(id, "Pokémon id must be positive");

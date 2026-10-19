@@ -19,6 +19,8 @@ export interface PokemonDetails {
   abilities: Ability[]
   stats: Stat[]
   evolutionChain: EvolutionNode
+  /** False for an alternate form (partner, regional, Mega...); its evolution chain is still the species'. */
+  defaultForm: boolean
 }
 
 /** One stage of the evolution tree; the base form has no condition. */
@@ -30,8 +32,14 @@ export interface EvolutionNode {
   evolvesTo: EvolutionNode[]
 }
 
+/** Only the trigger is always there; the rest is null when that evolution does not need it. */
 export interface EvolutionCondition {
   trigger: string
   minLevel: number | null
   item: string | null
+  heldItem: string | null
+  minHappiness: number | null
+  timeOfDay: string | null
+  knownMove: string | null
+  knownMoveType: string | null
 }

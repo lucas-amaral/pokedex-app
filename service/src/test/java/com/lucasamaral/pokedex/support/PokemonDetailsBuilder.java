@@ -33,6 +33,8 @@ public final class PokemonDetailsBuilder {
             new EvolutionNode(2, "ivysaur", null, new EvolutionCondition("level-up", 16, null), List.of(
                     new EvolutionNode(3, "venusaur", null, new EvolutionCondition("level-up", 32, null), List.of())))));
 
+    private boolean defaultForm = true;
+
     private PokemonDetailsBuilder() {
     }
 
@@ -90,8 +92,13 @@ public final class PokemonDetailsBuilder {
         return this;
     }
 
+    public PokemonDetailsBuilder withDefaultForm(boolean defaultForm) {
+        this.defaultForm = defaultForm;
+        return this;
+    }
+
     public PokemonDetails build() {
         return new PokemonDetails(id, name, speciesName, spriteUrl, artworkUrl, category, description, height, weight, types, abilities, stats,
-                evolutionChain);
+                evolutionChain, defaultForm);
     }
 }

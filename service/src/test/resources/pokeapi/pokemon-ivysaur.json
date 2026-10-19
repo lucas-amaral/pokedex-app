@@ -1,6 +1,7 @@
 {
   "id": 2,
   "name": "ivysaur",
+  "is_default": true,
   "height": 10,
   "weight": 130,
   "species": {

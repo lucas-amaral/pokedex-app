@@ -21,7 +21,8 @@ public record PokemonDetailsResponse(
         List<String> types,
         List<AbilityResponse> abilities,
         List<StatResponse> stats,
-        EvolutionNodeResponse evolutionChain) {
+        EvolutionNodeResponse evolutionChain,
+        boolean defaultForm) {
 
     public record StatResponse(String name, int value) {
 
@@ -50,10 +51,19 @@ public record PokemonDetailsResponse(
         }
     }
 
-    public record ConditionResponse(String trigger, Integer minLevel, String item) {
+    public record ConditionResponse(
+            String trigger,
+            Integer minLevel,
+            String item,
+            String heldItem,
+            Integer minHappiness,
+            String timeOfDay,
+            String knownMove,
+            String knownMoveType) {
 
         static ConditionResponse from(EvolutionCondition condition) {
-            return new ConditionResponse(condition.trigger(), condition.minLevel(), condition.item());
+            return new ConditionResponse(condition.trigger(), condition.minLevel(), condition.item(), condition.heldItem(),
+                    condition.minHappiness(), condition.timeOfDay(), condition.knownMove(), condition.knownMoveType());
         }
     }
 
@@ -71,6 +81,7 @@ public record PokemonDetailsResponse(
                 details.types(),
                 details.abilities().stream().map(AbilityResponse::from).toList(),
                 details.stats().stream().map(StatResponse::from).toList(),
-                EvolutionNodeResponse.from(details.evolutionChain()));
+                EvolutionNodeResponse.from(details.evolutionChain()),
+                details.defaultForm());
     }
 }

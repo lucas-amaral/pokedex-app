@@ -22,7 +22,13 @@
             "item": {
               "name": "water-stone",
               "url": "https://pokeapi.co/api/v2/item/84/"
-            }
+            },
+            "held_item": null,
+            "min_happiness": null,
+            "time_of_day": "",
+            "known_move": null,
+            "known_move_type": null,
+            "is_default": true
           }
         ],
         "evolves_to": []
@@ -42,7 +48,13 @@
             "item": {
               "name": "thunder-stone",
               "url": "https://pokeapi.co/api/v2/item/83/"
-            }
+            },
+            "held_item": null,
+            "min_happiness": null,
+            "time_of_day": "",
+            "known_move": null,
+            "known_move_type": null,
+            "is_default": true
           }
         ],
         "evolves_to": []
@@ -62,7 +74,13 @@
             "item": {
               "name": "fire-stone",
               "url": "https://pokeapi.co/api/v2/item/82/"
-            }
+            },
+            "held_item": null,
+            "min_happiness": null,
+            "time_of_day": "",
+            "known_move": null,
+            "known_move_type": null,
+            "is_default": true
           }
         ],
         "evolves_to": []
@@ -79,7 +97,13 @@
               "url": "https://pokeapi.co/api/v2/evolution-trigger/1/"
             },
             "min_level": null,
-            "item": null
+            "item": null,
+            "held_item": null,
+            "min_happiness": 160,
+            "time_of_day": "day",
+            "known_move": null,
+            "known_move_type": null,
+            "is_default": true
           }
         ],
         "evolves_to": []
@@ -96,7 +120,13 @@
               "url": "https://pokeapi.co/api/v2/evolution-trigger/1/"
             },
             "min_level": null,
-            "item": null
+            "item": null,
+            "held_item": null,
+            "min_happiness": 160,
+            "time_of_day": "night",
+            "known_move": null,
+            "known_move_type": null,
+            "is_default": true
           }
         ],
         "evolves_to": []
@@ -113,7 +143,13 @@
               "url": "https://pokeapi.co/api/v2/evolution-trigger/1/"
             },
             "min_level": null,
-            "item": null
+            "item": null,
+            "held_item": null,
+            "min_happiness": null,
+            "time_of_day": "",
+            "known_move": null,
+            "known_move_type": null,
+            "is_default": false
           },
           {
             "trigger": {
@@ -121,7 +157,13 @@
               "url": "https://pokeapi.co/api/v2/evolution-trigger/1/"
             },
             "min_level": null,
-            "item": null
+            "item": null,
+            "held_item": null,
+            "min_happiness": null,
+            "time_of_day": "",
+            "known_move": null,
+            "known_move_type": null,
+            "is_default": false
           },
           {
             "trigger": {
@@ -129,7 +171,13 @@
               "url": "https://pokeapi.co/api/v2/evolution-trigger/1/"
             },
             "min_level": null,
-            "item": null
+            "item": null,
+            "held_item": null,
+            "min_happiness": null,
+            "time_of_day": "",
+            "known_move": null,
+            "known_move_type": null,
+            "is_default": false
           },
           {
             "trigger": {
@@ -140,7 +188,13 @@
             "item": {
               "name": "leaf-stone",
               "url": "https://pokeapi.co/api/v2/item/85/"
-            }
+            },
+            "held_item": null,
+            "min_happiness": null,
+            "time_of_day": "",
+            "known_move": null,
+            "known_move_type": null,
+            "is_default": true
           },
           {
             "trigger": {
@@ -148,7 +202,13 @@
               "url": "https://pokeapi.co/api/v2/evolution-trigger/1/"
             },
             "min_level": null,
-            "item": null
+            "item": null,
+            "held_item": null,
+            "min_happiness": null,
+            "time_of_day": "",
+            "known_move": null,
+            "known_move_type": null,
+            "is_default": false
           },
           {
             "trigger": {
@@ -156,7 +216,13 @@
               "url": "https://pokeapi.co/api/v2/evolution-trigger/1/"
             },
             "min_level": null,
-            "item": null
+            "item": null,
+            "held_item": null,
+            "min_happiness": null,
+            "time_of_day": "",
+            "known_move": null,
+            "known_move_type": null,
+            "is_default": false
           }
         ],
         "evolves_to": []
@@ -173,7 +239,13 @@
               "url": "https://pokeapi.co/api/v2/evolution-trigger/1/"
             },
             "min_level": null,
-            "item": null
+            "item": null,
+            "held_item": null,
+            "min_happiness": null,
+            "time_of_day": "",
+            "known_move": null,
+            "known_move_type": null,
+            "is_default": false
           },
           {
             "trigger": {
@@ -181,7 +253,13 @@
               "url": "https://pokeapi.co/api/v2/evolution-trigger/1/"
             },
             "min_level": null,
-            "item": null
+            "item": null,
+            "held_item": null,
+            "min_happiness": null,
+            "time_of_day": "",
+            "known_move": null,
+            "known_move_type": null,
+            "is_default": false
           },
           {
             "trigger": {
@@ -189,7 +267,13 @@
               "url": "https://pokeapi.co/api/v2/evolution-trigger/1/"
             },
             "min_level": null,
-            "item": null
+            "item": null,
+            "held_item": null,
+            "min_happiness": null,
+            "time_of_day": "",
+            "known_move": null,
+            "known_move_type": null,
+            "is_default": false
           },
           {
             "trigger": {
@@ -200,7 +284,13 @@
             "item": {
               "name": "ice-stone",
               "url": "https://pokeapi.co/api/v2/item/885/"
-            }
+            },
+            "held_item": null,
+            "min_happiness": null,
+            "time_of_day": "",
+            "known_move": null,
+            "known_move_type": null,
+            "is_default": true
           },
           {
             "trigger": {
@@ -208,7 +298,13 @@
               "url": "https://pokeapi.co/api/v2/evolution-trigger/1/"
             },
             "min_level": null,
-            "item": null
+            "item": null,
+            "held_item": null,
+            "min_happiness": null,
+            "time_of_day": "",
+            "known_move": null,
+            "known_move_type": null,
+            "is_default": false
           },
           {
             "trigger": {
@@ -216,7 +312,13 @@
               "url": "https://pokeapi.co/api/v2/evolution-trigger/1/"
             },
             "min_level": null,
-            "item": null
+            "item": null,
+            "held_item": null,
+            "min_happiness": null,
+            "time_of_day": "",
+            "known_move": null,
+            "known_move_type": null,
+            "is_default": false
           }
         ],
         "evolves_to": []
@@ -233,7 +335,16 @@
               "url": "https://pokeapi.co/api/v2/evolution-trigger/1/"
             },
             "min_level": null,
-            "item": null
+            "item": null,
+            "held_item": null,
+            "min_happiness": null,
+            "time_of_day": "",
+            "known_move": null,
+            "known_move_type": {
+              "name": "fairy",
+              "url": "https://pokeapi.co/api/v2/type/18/"
+            },
+            "is_default": false
           },
           {
             "trigger": {
@@ -241,7 +352,16 @@
               "url": "https://pokeapi.co/api/v2/evolution-trigger/1/"
             },
             "min_level": null,
-            "item": null
+            "item": null,
+            "held_item": null,
+            "min_happiness": 160,
+            "time_of_day": "",
+            "known_move": null,
+            "known_move_type": {
+              "name": "fairy",
+              "url": "https://pokeapi.co/api/v2/type/18/"
+            },
+            "is_default": true
           }
         ],
         "evolves_to": []

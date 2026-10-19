@@ -53,7 +53,8 @@ final class PokeApiMapper {
                 types(pokemon),
                 abilities(pokemon),
                 stats(pokemon),
-                evolutionNode(chain.chain(), true));
+                evolutionNode(chain.chain(), true),
+                !Boolean.FALSE.equals(pokemon.isDefault()));
     }
 
     /** PokeAPI links end in the resource id: ".../evolution-chain/67/" → 67. */
@@ -139,15 +140,30 @@ final class PokeApiMapper {
                 children);
     }
 
-    /** A species can evolve in several ways; the first one PokeAPI lists is shown. */
+    /**
+     * PokeAPI lists one way to evolve per game; the one marked {@code is_default} is today's (Leafeon's first entry is
+     * Diamond/Pearl's moss rock, its default a Leaf Stone). Without a marked one, the first is shown.
+     */
     private static EvolutionCondition condition(PokeApiResponses.ChainLink link) {
         if (link.evolutionDetails() == null || link.evolutionDetails().isEmpty()) {
             return null;
         }
-        var detail = link.evolutionDetails().getFirst();
+        var detail = link.evolutionDetails().stream()
+                .filter(candidate -> Boolean.TRUE.equals(candidate.isDefault()))
+                .findFirst()
+                .orElse(link.evolutionDetails().getFirst());
         return new EvolutionCondition(
                 detail.trigger().name(),
                 detail.minLevel(),
-                detail.item() == null ? null : detail.item().name());
+                nameOf(detail.item()),
+                nameOf(detail.heldItem()),
+                detail.minHappiness(),
+                detail.timeOfDay() == null || detail.timeOfDay().isBlank() ? null : detail.timeOfDay(),
+                nameOf(detail.knownMove()),
+                nameOf(detail.knownMoveType()));
+    }
+
+    private static String nameOf(PokeApiResponses.NamedResource resource) {
+        return resource == null ? null : resource.name();
     }
 }

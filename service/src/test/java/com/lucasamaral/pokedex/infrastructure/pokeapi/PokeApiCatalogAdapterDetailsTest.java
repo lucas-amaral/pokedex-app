@@ -103,6 +103,38 @@ class PokeApiCatalogAdapterDetailsTest {
         assertThat(chain.evolvesTo().getFirst().condition()).isEqualTo(new EvolutionCondition("use-item", null, "water-stone"));
     }
 
+    /** PokeAPI lists one way per game; Leafeon's first is Diamond/Pearl's moss rock, its default today is a Leaf Stone. */
+    @Test
+    void showsTheDefaultWayToEvolveWhenPokeApiListsSeveral() {
+        stubPokemon("eevee", "eevee", 67);
+
+        assertThat(evolutionOf("leafeon")).isEqualTo(new EvolutionCondition("use-item", null, "leaf-stone"));
+        assertThat(evolutionOf("glaceon")).isEqualTo(new EvolutionCondition("use-item", null, "ice-stone"));
+    }
+
+    @Test
+    void keepsWhatTellsSimilarEvolutionsApart() {
+        stubPokemon("eevee", "eevee", 67);
+
+        assertThat(evolutionOf("espeon")).isEqualTo(new EvolutionCondition("level-up", null, null, null, 160, "day", null, null));
+        assertThat(evolutionOf("umbreon")).isEqualTo(new EvolutionCondition("level-up", null, null, null, 160, "night", null, null));
+        assertThat(evolutionOf("sylveon")).isEqualTo(new EvolutionCondition("level-up", null, null, null, 160, null, null, "fairy"));
+    }
+
+    @Test
+    void marksTheDefaultFormOfAPokemon() {
+        stubPokemon("eevee", "eevee", 67);
+
+        assertThat(adapter.findDetails("eevee").orElseThrow().defaultForm()).isTrue();
+    }
+
+    private EvolutionCondition evolutionOf(String species) {
+        return adapter.findDetails("eevee").orElseThrow().evolutionChain().evolvesTo().stream()
+                .filter(stage -> stage.name().equals(species))
+                .findFirst().orElseThrow()
+                .condition();
+    }
+
     @Test
     void findsAPokemonByPokedexNumber() {
         stubPokemon("1", "bulbasaur", 1);

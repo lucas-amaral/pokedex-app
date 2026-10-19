@@ -1,6 +1,7 @@
 {
   "id": 133,
   "name": "eevee",
+  "is_default": true,
   "height": 3,
   "weight": 65,
   "species": {

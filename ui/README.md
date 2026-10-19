@@ -42,7 +42,7 @@ does in development:
 | Address | Page |
 | --- | --- |
 | `/` and `/?page=N` | Catalog, page N (counted from 1, so the address can be shared or bookmarked) |
-| `/pokemon/:idOrName` | One Pokémon: artwork, types, height, weight, abilities, base stats, description, evolution chain, and "Add to collection" (shown only when the Pokémon is not collected yet; otherwise "In your collection" with a link). A malformed address shows "Pokémon not found" without calling the service |
+| `/pokemon/:idOrName` | One Pokémon: artwork, types, height, weight, abilities, base stats, description, evolution chain (each step says what it needs, for example "Level Up · Friendship 160+ · Day"; an alternate form such as `pikachu-starter` gets a note that it evolves as its species), and "Add to collection" (shown only when the Pokémon is not collected yet; otherwise "In your collection" with a link). A malformed address shows "Pokémon not found" without calling the service |
 | `/collection?name=&tag=&page=N` | Your collection: filter by name, nickname or localized name and by tag (click a tag on a row); filters and page live in the address |
 | `/collection/:id` | One collected Pokémon: PokeAPI data, your fields (nickname, notes, region, localized names, tags) with an edit form, "Refresh from PokeAPI", and "Remove from collection" with a confirmation |
 | `/login` | Log in; afterwards returns to the page that sent you here. A logged-in user is sent on to that page |
@@ -134,7 +134,7 @@ sends the `version` it was loaded with; if someone else saved in between, the se
 
 ## Testing
 
-98 tests in 13 files; run them with `npm test`.
+102 tests in 13 files; run them with `npm test`.
 
 - **Vitest** runs the tests in a simulated browser (jsdom).
 - **Testing Library** queries the page the way a user would: by role, label and visible text.
