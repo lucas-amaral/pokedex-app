@@ -17,7 +17,7 @@ describe('CollectedPokemonPage', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Bulby' })).toBeInTheDocument()
     expect(screen.getByText('Bulbasaur · #001')).toBeInTheDocument()
-    const fields = screen.getByRole('region', { name: 'Your fields' })
+    const fields = screen.getByRole('region', { name: 'Custom fields' })
     expect(fields).toHaveTextContent('Our first starter')
     expect(fields).toHaveTextContent('Kanto')
     expect(fields).toHaveTextContent('pt-BR')
@@ -31,7 +31,7 @@ describe('CollectedPokemonPage', () => {
     renderRoute(`/collection/${collectedCharmander.id}`)
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Charmander' })).toBeInTheDocument()
-    expect(screen.getByRole('region', { name: 'Your fields' })).toHaveTextContent('No nickname, notes, region, names or tags yet.')
+    expect(screen.getByRole('region', { name: 'Custom fields' })).toHaveTextContent('No nickname, notes, region, names or tags yet.')
   })
 
   it('refreshes the PokeAPI data on request', async () => {
@@ -62,8 +62,8 @@ describe('CollectedPokemonPage', () => {
     )
     renderRoute('/collection/6f1c2a3b-0000-4000-8000-0000000000ff')
 
-    expect(await screen.findByRole('heading', { name: 'Pokémon not in your collection' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Back to your collection' })).toHaveAttribute('href', '/collection')
+    expect(await screen.findByRole('heading', { name: 'Pokémon not in the collection' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Back to the collection' })).toHaveAttribute('href', '/collection')
   })
   it('edits the proprietary fields and shows the saved values', async () => {
     startLoggedInAs(ash)
@@ -78,7 +78,7 @@ describe('CollectedPokemonPage', () => {
     const user = userEvent.setup()
     renderRoute(`/collection/${collectedBulbasaur.id}`)
 
-    await user.click(await screen.findByRole('button', { name: 'Edit your fields' }))
+    await user.click(await screen.findByRole('button', { name: 'Edit custom fields' }))
     const nickname = screen.getByRole('textbox', { name: 'Nickname' })
     expect(nickname).toHaveValue('Bulby')
     await user.clear(nickname)
@@ -111,7 +111,7 @@ describe('CollectedPokemonPage', () => {
     const user = userEvent.setup()
     renderRoute(`/collection/${collectedCharmander.id}`)
 
-    await user.click(await screen.findByRole('button', { name: 'Edit your fields' }))
+    await user.click(await screen.findByRole('button', { name: 'Edit custom fields' }))
     await user.click(screen.getByRole('button', { name: 'Add a language' }))
     await user.type(screen.getByRole('textbox', { name: 'Language 1' }), 'pt-BR')
     await user.type(screen.getByRole('textbox', { name: 'Name in language 1' }), 'Charmander')
@@ -128,7 +128,7 @@ describe('CollectedPokemonPage', () => {
     const user = userEvent.setup()
     renderRoute(`/collection/${collectedBulbasaur.id}`)
 
-    await user.click(await screen.findByRole('button', { name: 'Edit your fields' }))
+    await user.click(await screen.findByRole('button', { name: 'Edit custom fields' }))
     const tags = screen.getByRole('textbox', { name: 'Tags' })
     await user.clear(tags)
     await user.type(tags, 'has space')
@@ -152,7 +152,7 @@ describe('CollectedPokemonPage', () => {
     const user = userEvent.setup()
     renderRoute(`/collection/${collectedBulbasaur.id}`)
 
-    await user.click(await screen.findByRole('button', { name: 'Edit your fields' }))
+    await user.click(await screen.findByRole('button', { name: 'Edit custom fields' }))
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
     expect(await screen.findByText('region must be at most 50 characters')).toBeInTheDocument()
@@ -177,7 +177,7 @@ describe('CollectedPokemonPage', () => {
     const user = userEvent.setup()
     renderRoute(`/collection/${collectedBulbasaur.id}`)
 
-    await user.click(await screen.findByRole('button', { name: 'Edit your fields' }))
+    await user.click(await screen.findByRole('button', { name: 'Edit custom fields' }))
     await user.click(screen.getByRole('button', { name: 'Save' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('Pokémon changed since you loaded it')
 
@@ -193,12 +193,12 @@ describe('CollectedPokemonPage', () => {
     const user = userEvent.setup()
     renderRoute(`/collection/${collectedBulbasaur.id}`)
 
-    await user.click(await screen.findByRole('button', { name: 'Edit your fields' }))
+    await user.click(await screen.findByRole('button', { name: 'Edit custom fields' }))
     await user.type(screen.getByRole('textbox', { name: 'Nickname' }), 'zzz')
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
 
-    expect(screen.getByRole('region', { name: 'Your fields' })).toHaveTextContent('Bulby')
-    expect(screen.getByRole('region', { name: 'Your fields' })).not.toHaveTextContent('Bulbyzzz')
+    expect(screen.getByRole('region', { name: 'Custom fields' })).toHaveTextContent('Bulby')
+    expect(screen.getByRole('region', { name: 'Custom fields' })).not.toHaveTextContent('Bulbyzzz')
   })
 
   it('removes the Pokémon after confirmation and says so in the collection', async () => {
@@ -216,10 +216,10 @@ describe('CollectedPokemonPage', () => {
     const { router } = renderRoute(`/collection/${collectedBulbasaur.id}`)
 
     await user.click(await screen.findByRole('button', { name: 'Remove from collection' }))
-    expect(screen.getByRole('alertdialog')).toHaveTextContent('Remove Bulby from your collection?')
+    expect(screen.getByRole('alertdialog')).toHaveTextContent('Remove Bulby from the collection?')
     await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Remove' }))
 
-    expect(await screen.findByRole('status')).toHaveTextContent('Bulby was removed from your collection.')
+    expect(await screen.findByRole('status')).toHaveTextContent('Bulby was removed from the collection.')
     expect(router.state.location.pathname).toBe('/collection')
     expect(deleted).toBe(true)
   })

@@ -77,7 +77,7 @@ describe('CollectionPage', () => {
     server.use(http.get(COLLECTION, () => HttpResponse.json(collectionPage([]))))
     renderRoute('/collection')
 
-    const empty = await screen.findByRole('heading', { name: 'Your collection is empty' })
+    const empty = await screen.findByRole('heading', { name: 'The collection is empty' })
     expect(empty).toBeInTheDocument()
     expect(within(empty.parentElement!).getByRole('link', { name: 'Browse the catalog' })).toHaveAttribute('href', '/')
   })

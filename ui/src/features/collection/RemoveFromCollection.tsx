@@ -29,7 +29,7 @@ export function RemoveFromCollection({ id, title }: { id: string; title: string 
   return (
     <div role="alertdialog" aria-labelledby="remove-question" className="space-y-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm">
       <p id="remove-question" className="font-medium text-red-800">
-        Remove {title} from your collection?
+        Remove {title} from the collection?
       </p>
       <p className="text-red-700">Its nickname, notes, region, names and tags will be lost.</p>
       {remove.isError && <p className="text-red-700">{remove.error.title}</p>}

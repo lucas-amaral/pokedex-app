@@ -22,7 +22,7 @@ describe('actions shown by who is logged in', () => {
     serveBulbasaur()
     renderRoute('/pokemon/bulbasaur')
 
-    expect(await screen.findByRole('link', { name: 'Log in to add it to your collection' })).toHaveAttribute('href', '/login')
+    expect(await screen.findByRole('link', { name: 'Log in to add it to the collection' })).toHaveAttribute('href', '/login')
     expect(screen.queryByRole('button', { name: 'Add to collection' })).not.toBeInTheDocument()
   })
 
@@ -41,7 +41,7 @@ describe('actions shown by who is logged in', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Add to collection' }))
 
-    expect(await screen.findByRole('status')).toHaveTextContent('Added to your collection')
+    expect(await screen.findByRole('status')).toHaveTextContent('Added to the collection')
     expect(authorization).toBe(bearer)
   })
 
@@ -50,7 +50,7 @@ describe('actions shown by who is logged in', () => {
     renderRoute(`/collection/${collectedBulbasaur.id}`)
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Bulby' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Edit your fields' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Edit custom fields' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Refresh from PokeAPI' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Remove from collection' })).not.toBeInTheDocument()
   })
@@ -60,7 +60,7 @@ describe('actions shown by who is logged in', () => {
     startLoggedInAs(ash)
     renderRoute(`/collection/${collectedBulbasaur.id}`)
 
-    expect(await screen.findByRole('button', { name: 'Edit your fields' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Edit custom fields' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Refresh from PokeAPI' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Remove from collection' })).not.toBeInTheDocument()
   })
@@ -97,10 +97,10 @@ describe('actions shown by who is logged in', () => {
     const user = userEvent.setup()
     renderRoute(`/collection/${collectedBulbasaur.id}`)
 
-    await user.click(await screen.findByRole('button', { name: 'Edit your fields' }))
+    await user.click(await screen.findByRole('button', { name: 'Edit custom fields' }))
     await user.click(screen.getByRole('button', { name: 'Log out' }))
 
     expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Edit your fields' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Edit custom fields' })).not.toBeInTheDocument()
   })
 })

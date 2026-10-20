@@ -20,7 +20,7 @@ export function AddToCollectionButton({ idOrName, pokeapiId }: AddToCollectionBu
   if (sync.isSuccess) {
     return (
       <p role="status" className="text-sm text-green-700">
-        Added to your collection. <OpenLink id={sync.data.pokemon.id} />
+        Added to the collection. <OpenLink id={sync.data.pokemon.id} />
       </p>
     )
   }
@@ -32,7 +32,7 @@ export function AddToCollectionButton({ idOrName, pokeapiId }: AddToCollectionBu
   if (collected.data) {
     return (
       <p className="text-sm text-slate-600">
-        <span className="font-medium text-slate-900">In your collection</span> · <OpenLink id={collected.data.id} />
+        <span className="font-medium text-slate-900">In the collection</span> · <OpenLink id={collected.data.id} />
       </p>
     )
   }
@@ -40,7 +40,7 @@ export function AddToCollectionButton({ idOrName, pokeapiId }: AddToCollectionBu
   if (!user) {
     return (
       <Link to="/login" state={{ from: location }} className="block text-sm font-medium text-red-600 hover:underline">
-        Log in to add it to your collection
+        Log in to add it to the collection
       </Link>
     )
   }
@@ -68,7 +68,7 @@ export function AddToCollectionButton({ idOrName, pokeapiId }: AddToCollectionBu
 function OpenLink({ id }: { id: string }) {
   return (
     <Link to={`/collection/${id}`} className="font-medium text-red-600 underline">
-      Open in your collection
+      Open in the collection
     </Link>
   )
 }

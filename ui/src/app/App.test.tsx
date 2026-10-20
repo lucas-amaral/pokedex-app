@@ -26,7 +26,7 @@ describe('App', () => {
   it('offers navigation to the collection', () => {
     renderRoute('/')
 
-    expect(screen.getByRole('link', { name: 'Your collection' })).toHaveAttribute('href', '/collection')
+    expect(screen.getByRole('link', { name: 'Collection' })).toHaveAttribute('href', '/collection')
   })
 
   it('opens on the catalog', async () => {

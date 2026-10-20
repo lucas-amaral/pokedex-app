@@ -40,14 +40,14 @@ export function CollectedPokemonPage() {
 }
 
 function NotInCollection() {
-  useDocumentTitle('Not in your collection')
+  useDocumentTitle('Not in the collection')
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-6 text-center">
-      <h1 className="text-lg font-semibold">Pokémon not in your collection</h1>
+      <h1 className="text-lg font-semibold">Pokémon not in the collection</h1>
       <p className="mt-1 text-sm text-slate-500">It may have been removed, or the address is wrong.</p>
       <Link to="/collection" className="mt-4 inline-block text-sm font-medium text-red-600 hover:underline">
-        Back to your collection
+        Back to the collection
       </Link>
     </div>
   )
@@ -152,11 +152,11 @@ function YourFields({ pokemon }: { pokemon: CollectedPokemon }) {
     <section aria-labelledby="your-fields-heading" className="rounded-xl border border-slate-200 bg-white p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
         <h2 id="your-fields-heading" className="font-semibold">
-          Your fields
+          Custom fields
         </h2>
         {user && !isEditing && (
           <button type="button" onClick={startEditing} className="text-sm font-medium text-red-600 hover:underline">
-            Edit your fields
+            Edit custom fields
           </button>
         )}
       </div>

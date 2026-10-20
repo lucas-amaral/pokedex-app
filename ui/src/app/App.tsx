@@ -32,7 +32,7 @@ function Layout() {
               to="/collection"
               className={({ isActive }) => (isActive ? 'font-medium text-red-600' : 'text-slate-600 hover:text-slate-900')}
             >
-              Your collection
+              Collection
             </NavLink>
           </nav>
           <Account />

@@ -42,20 +42,21 @@ does in development:
 | Address | Page |
 | --- | --- |
 | `/` and `/?page=N` | Catalog, page N (counted from 1, so the address can be shared or bookmarked) |
-| `/pokemon/:idOrName` | One Pokémon: artwork, types, height, weight, abilities, base stats, description, evolution chain (each step says what it needs, for example "Level Up · Friendship 160+ · Day"; an alternate form such as `pikachu-starter` gets a note that it evolves as its species), and "Add to collection" (shown only when the Pokémon is not collected yet; otherwise "In your collection" with a link). A malformed address shows "Pokémon not found" without calling the service |
-| `/collection?name=&tag=&page=N` | Your collection: filter by name, nickname or localized name and by tag (click a tag on a row); filters and page live in the address |
-| `/collection/:id` | One collected Pokémon: PokeAPI data, your fields (nickname, notes, region, localized names, tags) with an edit form, "Refresh from PokeAPI", and "Remove from collection" with a confirmation |
+| `/pokemon/:idOrName` | One Pokémon: artwork, types, height, weight, abilities, base stats, description, evolution chain (each step says what it needs, for example "Level Up · Friendship 160+ · Day"; an alternate form such as `pikachu-starter` gets a note that it evolves as its species), and "Add to collection" (shown only when the Pokémon is not collected yet; otherwise "In the collection" with a link). A malformed address shows "Pokémon not found" without calling the service |
+| `/collection?name=&tag=&page=N` | Collection: filter by name, nickname or localized name and by tag (click a tag on a row); filters and page live in the address |
+| `/collection/:id` | One collected Pokémon: PokeAPI data, custom fields (nickname, notes, region, localized names, tags) with an edit form, "Refresh from PokeAPI", and "Remove from collection" with a confirmation |
 | `/login` | Log in; afterwards returns to the page that sent you here. A logged-in user is sent on to that page |
 | `/register` | Create an account; logs in right away and returns to the page that sent you here. A logged-in user is sent on to that page |
 | anything else | Page not found |
 
 ## Logging in
 
-Anyone can browse the catalog and the collection. What each visitor can change:
+There is one collection, shared by everyone: users curate it together, nobody owns a Pokémon in it. Anyone can browse
+the catalog and the collection. What each visitor can change:
 
 | Who | Can |
 | --- | --- |
-| Visitor | Browse; sees "Log in to add it to your collection" instead of the button |
+| Visitor | Browse; sees "Log in to add it to the collection" instead of the button |
 | Logged-in user | Add a Pokémon, edit its fields, refresh it from PokeAPI |
 | Admin (badge in the header) | Everything above, plus remove a Pokémon |
 

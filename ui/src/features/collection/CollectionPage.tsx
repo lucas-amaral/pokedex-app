@@ -21,7 +21,7 @@ function readAddress(searchParams: URLSearchParams) {
 }
 
 export function CollectionPage() {
-  useDocumentTitle('Your collection')
+  useDocumentTitle('Collection')
   const [searchParams, setSearchParams] = useSearchParams()
   const { name, tag, page } = readAddress(searchParams)
   const { data, error, isPending, isPlaceholderData, refetch } = useCollectionPage({ page, size: PAGE_SIZE, name, tag })
@@ -40,7 +40,7 @@ export function CollectionPage() {
     <section aria-labelledby="collection-heading" className="space-y-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 id="collection-heading" className="text-xl font-semibold">
-          Your collection
+          Collection
         </h1>
         {data && (
           <p className="text-sm text-slate-500">
@@ -51,22 +51,22 @@ export function CollectionPage() {
 
       {removedName && (
         <p role="status" className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
-          {removedName} was removed from your collection.
+          {removedName} was removed from the collection.
         </p>
       )}
 
       <FilterForm key={searchParams.toString()} name={name} tag={tag} onApply={applyFilters} isFiltered={isFiltered} />
 
       {isPending && (
-        <div aria-busy="true" aria-label="Loading your collection" className="h-64 animate-pulse rounded-xl border border-slate-200 bg-white" />
+        <div aria-busy="true" aria-label="Loading the collection" className="h-64 animate-pulse rounded-xl border border-slate-200 bg-white" />
       )}
 
       {error && !data && <ErrorState error={error} onRetry={() => void refetch()} />}
 
       {data && data.totalElements === 0 && !isFiltered && (
         <div className="rounded-xl border border-slate-200 bg-white p-6 text-center">
-          <h2 className="font-semibold">Your collection is empty</h2>
-          <p className="mt-1 text-sm text-slate-500">Open a Pokémon in the catalog and add it to start your collection.</p>
+          <h2 className="font-semibold">The collection is empty</h2>
+          <p className="mt-1 text-sm text-slate-500">Open a Pokémon in the catalog and add it to start the collection.</p>
           <Link to="/" className="mt-4 inline-block text-sm font-medium text-red-600 hover:underline">
             Browse the catalog
           </Link>

@@ -145,8 +145,8 @@ describe('PokemonDetailsPage', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Add to collection' }))
 
-    expect(await screen.findByRole('status')).toHaveTextContent('Added to your collection')
-    expect(screen.getByRole('link', { name: 'Open in your collection' })).toHaveAttribute(
+    expect(await screen.findByRole('status')).toHaveTextContent('Added to the collection')
+    expect(screen.getByRole('link', { name: 'Open in the collection' })).toHaveAttribute(
       'href',
       `/collection/${collectedBulbasaur.id}`,
     )
@@ -167,7 +167,7 @@ describe('PokemonDetailsPage', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Ivysaur' })).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: 'Add to collection' })).toBeInTheDocument()
-    expect(screen.queryByText(/Added to your collection/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Added to the collection/)).not.toBeInTheDocument()
   })
 
   it('does not offer to add a Pokémon that is already collected', async () => {
@@ -176,8 +176,8 @@ describe('PokemonDetailsPage', () => {
     server.use(http.get('*/api/v1/pokemon', () => HttpResponse.json(collectionPage([collectedBulbasaur]))))
     renderRoute('/pokemon/bulbasaur')
 
-    expect(await screen.findByText('In your collection')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Open in your collection' })).toHaveAttribute(
+    expect(await screen.findByText('In the collection')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Open in the collection' })).toHaveAttribute(
       'href',
       `/collection/${collectedBulbasaur.id}`,
     )
