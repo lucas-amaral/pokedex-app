@@ -3,7 +3,8 @@
 A full-stack Pokédex: a Spring Boot REST API that browses [PokeAPI](https://pokeapi.co/docs/v2), keeps a local
 collection of Pokémon with proprietary fields, and a React front-end that consumes it.
 
-The project is built story by story, test-first, on a Clean Architecture backend.
+The project is built story by story, test-first, on a Clean Architecture backend. [THOUGHT_PROCESS.md](THOUGHT_PROCESS.md)
+explains the decisions and the order they were made in.
 
 ## User stories
 
@@ -101,6 +102,7 @@ Anyone can also create a `USER` account with "Sign up".
 
 ```
 pokedex-app/
+├── THOUGHT_PROCESS.md   How the exercise was approached: plan, decisions, mistakes, next steps
 ├── docker-compose.yml   Whole stack (db, service, ui), or only the database for development
 ├── genai/               GenAI exercise: prompt, task API, validation → see genai/README.md
 ├── service/             Spring Boot API (Java 25, Gradle)   → see service/README.md
